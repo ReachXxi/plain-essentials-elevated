@@ -1,4 +1,5 @@
 import logo from "@/assets/image.png.asset.json";
+import hero from "@/assets/hero-plain.jpg.asset.json";
 import p2 from "@/assets/image-2.png.asset.json";
 import p3 from "@/assets/image-3.png.asset.json";
 import p4 from "@/assets/image-4.png.asset.json";
@@ -10,6 +11,7 @@ import p9 from "@/assets/image-9.png.asset.json";
 import p10 from "@/assets/image-10.png.asset.json";
 
 export const LOGO_URL = logo.url;
+export const HERO_URL = hero.url;
 export const WHATSAPP_NUMBER = "2349074473570";
 export const ADMIN_PASSWORD = "THEPLAINSOCIETY";
 export const PRICE = 30000;
