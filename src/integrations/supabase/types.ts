@@ -14,7 +14,180 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      analytics_events: {
+        Row: {
+          created_at: string
+          id: number
+          kind: string
+          label: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          kind: string
+          label?: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          kind?: string
+          label?: string
+        }
+        Relationships: []
+      }
+      gallery: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          image_url: string
+          sort_order: number
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          image_url: string
+          sort_order?: number
+          title?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          image_url?: string
+          sort_order?: number
+          title?: string
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          created_at: string
+          customer_name: string
+          id: string
+          items: Json
+          note: string
+          phone: string
+          receipt_url: string | null
+          reference: string
+          status: string
+          total_ngn: number
+          total_usd: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_name?: string
+          id?: string
+          items?: Json
+          note?: string
+          phone?: string
+          receipt_url?: string | null
+          reference?: string
+          status?: string
+          total_ngn?: number
+          total_usd?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_name?: string
+          id?: string
+          items?: Json
+          note?: string
+          phone?: string
+          receipt_url?: string | null
+          reference?: string
+          status?: string
+          total_ngn?: number
+          total_usd?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          active: boolean
+          badge: string | null
+          category: string
+          colors: string[]
+          created_at: string
+          description: string
+          discount_percent: number
+          id: string
+          images: string[]
+          name: string
+          price_usd: number
+          shipping_usd: number
+          sizes: string[]
+          slug: string | null
+          sort_order: number
+          updated_at: string
+          vat_percent: number
+          video_url: string | null
+        }
+        Insert: {
+          active?: boolean
+          badge?: string | null
+          category?: string
+          colors?: string[]
+          created_at?: string
+          description?: string
+          discount_percent?: number
+          id?: string
+          images?: string[]
+          name: string
+          price_usd?: number
+          shipping_usd?: number
+          sizes?: string[]
+          slug?: string | null
+          sort_order?: number
+          updated_at?: string
+          vat_percent?: number
+          video_url?: string | null
+        }
+        Update: {
+          active?: boolean
+          badge?: string | null
+          category?: string
+          colors?: string[]
+          created_at?: string
+          description?: string
+          discount_percent?: number
+          id?: string
+          images?: string[]
+          name?: string
+          price_usd?: number
+          shipping_usd?: number
+          sizes?: string[]
+          slug?: string | null
+          sort_order?: number
+          updated_at?: string
+          vat_percent?: number
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
