@@ -20,17 +20,15 @@ export function Hero({ image }: { image: string }) {
         {Array.from({ length: SLATS }).map((_, i) => (
           <div
             key={i}
-            className={`relative flex-1 overflow-hidden ${mounted ? "slat-reveal" : "opacity-0"}`}
-            style={{ animationDelay: `${i * 60}ms` }}
-          >
-            <img
-              src={image}
-              alt=""
-              aria-hidden
-              className="absolute w-full object-cover"
-              style={{ height: `${SLATS * 100}%`, top: `-${i * 100}%` }}
-            />
-          </div>
+            className={`flex-1 ${mounted ? "slat-reveal" : "opacity-0"}`}
+            style={{
+              animationDelay: `${i * 60}ms`,
+              backgroundImage: `url(${image})`,
+              backgroundSize: `cover`,
+              backgroundPosition: `center ${(i / (SLATS - 1)) * 100}%`,
+              backgroundAttachment: "fixed",
+            }}
+          />
         ))}
       </div>
 
