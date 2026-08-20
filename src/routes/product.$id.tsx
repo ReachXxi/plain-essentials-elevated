@@ -71,7 +71,7 @@ function ProductPage() {
     );
   }
 
-  const activeColor = color ?? product.colors[0];
+  const activeColor = color ?? product.colors[0] ?? "Black";
   const related = products.filter((p) => p.id !== product.id).slice(0, 4);
   const video = product.video ?? "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 
@@ -182,7 +182,7 @@ function ProductPage() {
                     id: product.id,
                     name: product.name,
                     price: product.price,
-                    image: product.images[0],
+                    image: product.images[0] ?? "",
                     size,
                     color: activeColor,
                     qty,
