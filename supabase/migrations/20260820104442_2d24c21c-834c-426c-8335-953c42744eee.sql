@@ -1,0 +1,7 @@
+
+INSERT INTO public.products (name, slug, category, description, price_usd, vat_percent, shipping_usd, discount_percent, images, colors, badge, sort_order) VALUES
+('Chill Chest Print Tee','chill-front','T-Shirts','Heavyweight oversized tee with a crimson CHILL block print at the chest. Boxy drop-shoulder fit, garment washed for softness.',18.75,7.5,5,0,ARRAY['/__l5e/assets-v1/39afc151-c864-4fa6-b5fe-35d934ee7cb0/image-2.png'],ARRAY['Black','Crimson'],'NEW',1),
+('Chill God Neighborhood Tee','chill-god','T-Shirts','Full back graphic with hanging sneakers and the line "God is in the neighborhood". 100% organic combed cotton.',18.75,7.5,5,0,ARRAY['/__l5e/assets-v1/8f2b8f3c-0000-0000-0000-000000000000/x.png'],ARRAY['Black'],'BESTSELLER',2),
+('Freedom Warp Tee','freedom','T-Shirts','Warped lilac FREEDOM typography across the back with a serif statement underneath. Boxy oversized cut.',18.75,7.5,5,0,ARRAY['/__l5e/assets-v1/6d75f760-7900-4c59-b985-bd1bbebeac39/image-3.png'],ARRAY['Black','Lilac'],'NEW',3),
+('Plain Logo Essential Tee','plain-logo','T-Shirts','The core PLAIN essential. Small chest logo, clean neckline, premium 240gsm cotton jersey.',18.75,7.5,5,0,ARRAY['/__l5e/assets-v1/156b6a7f-68c6-461c-bda8-bb0e14ebd39d/image-4.png'],ARRAY['Black','Purple'],NULL,4),
+('Sexy Character Crop Tee','sexy-crop','T-Shirts','Cropped silhouette with a hand-illustrated character graphic. Soft-hand screen print that will not crack.',18.75,7.5,5,0,ARRAY['/__l5e/assets-v1/820c4c70-638e-4d4c-a4fc-a3c87259c205/image-5.png'],ARRAY['Black','Pink'],'NEW',5);
