@@ -1,5 +1,6 @@
 import {
   createContext,
+  type Context,
   useCallback,
   useContext,
   useEffect,
@@ -44,7 +45,11 @@ type StoreValue = {
   cartTotal: number;
 };
 
-const StoreContext = createContext<StoreValue | null>(null);
+// Hoisted onto globalThis so that any duplicate copy of this module in the
+// production bundle still shares one single context instance.
+const g = globalThis as unknown as { __plainStoreContext?: Context<StoreValue | null> };
+const StoreContext: Context<StoreValue | null> =
+  g.__plainStoreContext ?? (g.__plainStoreContext = createContext<StoreValue | null>(null));
 
 function load<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
