@@ -33,7 +33,7 @@ export function Hero({ image }: { image: string }) {
         ))}
       </div>
 
-      <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-ink/30" />
+      <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/50 to-ink/10" />
 
       <div className="relative mx-auto flex min-h-[92vh] max-w-7xl flex-col justify-end px-4 pb-20 pt-32 md:px-8">
         <p className="font-accent text-[11px] text-accent rise-in">See your dream fit</p>
