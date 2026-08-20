@@ -6,6 +6,7 @@ import { Footer } from "@/components/site/Footer";
 import { Hero } from "@/components/site/Hero";
 import { ProductCard } from "@/components/site/ProductCard";
 import { useStore } from "@/lib/store";
+import { HERO_URL } from "@/lib/catalog";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -57,7 +58,7 @@ function Index() {
   const categories = ["All", ...Array.from(new Set(products.map((p) => p.category)))];
   const filtered = tab === "All" ? products : products.filter((p) => p.category === tab);
   const featured = products.slice(0, 3);
-  const hero = products[0]?.images[0] ?? "";
+  const hero = HERO_URL;
 
   return (
     <div className="min-h-screen bg-background">

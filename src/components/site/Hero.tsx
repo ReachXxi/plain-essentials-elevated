@@ -16,25 +16,24 @@ export function Hero({ image }: { image: string }) {
 
   return (
     <section className="relative min-h-[92vh] overflow-hidden bg-ink text-ink-foreground">
-      <div className="absolute inset-0 flex flex-col" style={{ perspective: "1200px" }}>
+      <img
+        src={image}
+        alt="PLAIN essentials campaign"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+
+      {/* Slat curtain: solid bars slide away to unveil the campaign image */}
+      <div className="pointer-events-none absolute inset-0 flex flex-col">
         {Array.from({ length: SLATS }).map((_, i) => (
           <div
             key={i}
-            className={`relative flex-1 overflow-hidden ${mounted ? "slat-reveal" : "opacity-0"}`}
-            style={{ animationDelay: `${i * 60}ms` }}
-          >
-            <img
-              src={image}
-              alt=""
-              aria-hidden
-              className="absolute w-full object-cover"
-              style={{ height: `${SLATS * 100}%`, top: `-${i * 100}%` }}
-            />
-          </div>
+            className={`flex-1 bg-ink ${mounted ? "slat-curtain" : ""}`}
+            style={{ animationDelay: `${i * 70}ms` }}
+          />
         ))}
       </div>
 
-      <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-ink/30" />
+      <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/50 to-ink/10" />
 
       <div className="relative mx-auto flex min-h-[92vh] max-w-7xl flex-col justify-end px-4 pb-20 pt-32 md:px-8">
         <p className="font-accent text-[11px] text-accent rise-in">See your dream fit</p>

@@ -87,7 +87,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setCart((prev) => {
       const next = [...prev];
       const i = next.findIndex((l) => lineKey(l) === lineKey(line));
-      if (i >= 0) next[i] = { ...next[i], qty: next[i].qty + line.qty };
+      const existing = i >= 0 ? next[i] : undefined;
+      if (existing) next[i] = { ...existing, qty: existing.qty + line.qty };
       else next.push(line);
       persist("plain.cart", next);
       return next;

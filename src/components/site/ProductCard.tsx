@@ -29,9 +29,9 @@ export function ProductCard({ product }: { product: Product }) {
                 id: product.id,
                 name: product.name,
                 price: product.price,
-                image: product.images[0],
+                image: product.images[0] ?? "",
                 size: "M",
-                color: product.colors[0],
+                color: product.colors[0] ?? "Black",
                 qty: 1,
               });
             }}
