@@ -16,18 +16,19 @@ export function Hero({ image }: { image: string }) {
 
   return (
     <section className="relative min-h-[92vh] overflow-hidden bg-ink text-ink-foreground">
-      <div className="absolute inset-0 flex flex-col" style={{ perspective: "1200px" }}>
+      <img
+        src={image}
+        alt="PLAIN essentials campaign"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+
+      {/* Slat curtain: solid bars slide away to unveil the campaign image */}
+      <div className="pointer-events-none absolute inset-0 flex flex-col">
         {Array.from({ length: SLATS }).map((_, i) => (
           <div
             key={i}
-            className={`flex-1 ${mounted ? "slat-reveal" : "opacity-0"}`}
-            style={{
-              animationDelay: `${i * 60}ms`,
-              backgroundImage: `url(${image})`,
-              backgroundSize: `cover`,
-              backgroundPosition: `center ${(i / (SLATS - 1)) * 100}%`,
-              backgroundAttachment: "fixed",
-            }}
+            className={`flex-1 bg-ink ${mounted ? "slat-curtain" : ""}`}
+            style={{ animationDelay: `${i * 70}ms` }}
           />
         ))}
       </div>
