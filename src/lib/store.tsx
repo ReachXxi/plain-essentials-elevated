@@ -8,45 +8,39 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { defaultProducts, WHATSAPP_NUMBER, naira, type Product } from "./catalog";
-
-export type CartLine = {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-  size: string;
-  color: string;
-  qty: number;
-};
-
-export type Order = {
-  id: string;
-  customer: string;
-  total: number;
-  items: number;
-  status: "pending" | "approved" | "declined";
-  createdAt: string;
-};
+import { useQuery } from "@tanstack/react-query";
+import { getSiteData } from "./plain.functions";
+import {
+  cartTotalUsd,
+  defaultSettings,
+  lineKey,
+  type CartLine,
+  type GalleryItem,
+  type Product,
+  type SiteSettings,
+} from "./site";
 
 type StoreValue = {
+  settings: SiteSettings;
   products: Product[];
-  setProducts: (p: Product[]) => void;
+  gallery: GalleryItem[];
+  loading: boolean;
+  refresh: () => void;
   cart: CartLine[];
   addToCart: (line: CartLine) => void;
+  setQty: (key: string, qty: number) => void;
   removeFromCart: (key: string) => void;
   clearCart: () => void;
-  wishlist: string[];
-  toggleWishlist: (id: string) => void;
-  orders: Order[];
-  addOrder: (o: Order) => void;
-  setOrderStatus: (id: string, status: Order["status"]) => void;
   cartCount: number;
   cartTotal: number;
+  wishlist: string[];
+  toggleWishlist: (id: string) => void;
+  lastAdded: CartLine | null;
+  dismissLastAdded: () => void;
+  cartOpen: boolean;
+  setCartOpen: (open: boolean) => void;
 };
 
-// Hoisted onto globalThis so that any duplicate copy of this module in the
-// production bundle still shares one single context instance.
 const g = globalThis as unknown as { __plainStoreContext?: Context<StoreValue | null> };
 const StoreContext: Context<StoreValue | null> =
   g.__plainStoreContext ?? (g.__plainStoreContext = createContext<StoreValue | null>(null));
@@ -61,31 +55,29 @@ function load<T>(key: string, fallback: T): T {
   }
 }
 
-export function lineKey(l: CartLine) {
-  return `${l.id}-${l.size}-${l.color}`;
+function persist(key: string, value: unknown) {
+  if (typeof window !== "undefined")
+    window.localStorage.setItem(key, JSON.stringify(value));
 }
 
+export { lineKey };
+
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [products, setProductsState] = useState<Product[]>(defaultProducts);
+  const query = useQuery({
+    queryKey: ["site-data"],
+    queryFn: () => getSiteData(),
+    staleTime: 10_000,
+    refetchOnWindowFocus: true,
+  });
+
   const [cart, setCart] = useState<CartLine[]>([]);
   const [wishlist, setWishlist] = useState<string[]>([]);
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [lastAdded, setLastAdded] = useState<CartLine | null>(null);
+  const [cartOpen, setCartOpen] = useState(false);
 
   useEffect(() => {
-    setProductsState(load("plain.products", defaultProducts));
     setCart(load("plain.cart", [] as CartLine[]));
     setWishlist(load("plain.wishlist", [] as string[]));
-    setOrders(load("plain.orders", [] as Order[]));
-  }, []);
-
-  const persist = (key: string, value: unknown) => {
-    if (typeof window !== "undefined")
-      window.localStorage.setItem(key, JSON.stringify(value));
-  };
-
-  const setProducts = useCallback((p: Product[]) => {
-    setProductsState(p);
-    persist("plain.products", p);
   }, []);
 
   const addToCart = useCallback((line: CartLine) => {
@@ -95,6 +87,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const existing = i >= 0 ? next[i] : undefined;
       if (existing) next[i] = { ...existing, qty: existing.qty + line.qty };
       else next.push(line);
+      persist("plain.cart", next);
+      return next;
+    });
+    setLastAdded(line);
+  }, []);
+
+  const setQty = useCallback((key: string, qty: number) => {
+    setCart((prev) => {
+      const next = prev
+        .map((l) => (lineKey(l) === key ? { ...l, qty: Math.max(1, qty) } : l))
+        .filter((l) => l.qty > 0);
       persist("plain.cart", next);
       return next;
     });
@@ -121,55 +124,44 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const addOrder = useCallback((o: Order) => {
-    setOrders((prev) => {
-      const next = [o, ...prev];
-      persist("plain.orders", next);
-      return next;
-    });
-  }, []);
+  const settings = useMemo<SiteSettings>(
+    () => ({ ...defaultSettings, ...((query.data?.settings ?? {}) as Partial<SiteSettings>) }),
+    [query.data],
+  );
 
-  const setOrderStatus = useCallback((id: string, status: Order["status"]) => {
-    setOrders((prev) => {
-      const next = prev.map((o) => (o.id === id ? { ...o, status } : o));
-      persist("plain.orders", next);
-      return next;
-    });
-  }, []);
-
-  const cartCount = cart.reduce((s, l) => s + l.qty, 0);
-  const cartTotal = cart.reduce((s, l) => s + l.qty * l.price, 0);
-
-  const value = useMemo(
+  const value = useMemo<StoreValue>(
     () => ({
-      products,
-      setProducts,
+      settings,
+      products: (query.data?.products ?? []) as Product[],
+      gallery: (query.data?.gallery ?? []) as GalleryItem[],
+      loading: query.isLoading,
+      refresh: () => void query.refetch(),
       cart,
       addToCart,
+      setQty,
       removeFromCart,
       clearCart,
+      cartCount: cart.reduce((s, l) => s + l.qty, 0),
+      cartTotal: cartTotalUsd(cart),
       wishlist,
       toggleWishlist,
-      orders,
-      addOrder,
-      setOrderStatus,
-      cartCount,
-      cartTotal,
+      lastAdded,
+      dismissLastAdded: () => setLastAdded(null),
+      cartOpen,
+      setCartOpen,
     }),
     [
-      products,
-      setProducts,
+      settings,
+      query,
       cart,
       addToCart,
+      setQty,
       removeFromCart,
       clearCart,
       wishlist,
       toggleWishlist,
-      orders,
-      addOrder,
-      setOrderStatus,
-      cartCount,
-      cartTotal,
+      lastAdded,
+      cartOpen,
     ],
   );
 
@@ -180,15 +172,4 @@ export function useStore() {
   const ctx = useContext(StoreContext);
   if (!ctx) throw new Error("useStore must be used inside StoreProvider");
   return ctx;
-}
-
-export function whatsappLink(message: string) {
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-}
-
-export function cartMessage(cart: CartLine[], total: number) {
-  const lines = cart
-    .map((l) => `• ${l.name} — ${l.size} / ${l.color} × ${l.qty} — ${naira(l.price * l.qty)}`)
-    .join("\n");
-  return `Hello PLAIN, I'd like to order:\n\n${lines}\n\nTotal: ${naira(total)}`;
 }
