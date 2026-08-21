@@ -1,0 +1,161 @@
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+
+export const getSiteData = createServerFn({ method: "GET" }).handler(async () => {
+  const { adminDb } = await import("./plain.server");
+  const db = adminDb();
+  const [settings, products, gallery] = await Promise.all([
+    db.from("site_settings").select("value").eq("key", "site").maybeSingle(),
+    db.from("products").select("*").eq("active", true).order("sort_order"),
+    db.from("gallery").select("*").order("sort_order"),
+  ]);
+  return {
+    settings: (settings.data?.value ?? {}) as Record<string, unknown>,
+    products: products.data ?? [],
+    gallery: gallery.data ?? [],
+  };
+});
+
+export const trackEvent = createServerFn({ method: "POST" })
+  .inputValidator((input) =>
+    z.object({ kind: z.enum(["view", "click"]), label: z.string().max(200) }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { adminDb } = await import("./plain.server");
+    await adminDb().from("analytics_events").insert({ kind: data.kind, label: data.label });
+    return { ok: true };
+  });
+
+export const placeOrder = createServerFn({ method: "POST" })
+  .inputValidator((input) =>
+    z
+      .object({
+        customer_name: z.string().trim().max(120).default(""),
+        phone: z.string().trim().max(40).default(""),
+        note: z.string().trim().max(1000).default(""),
+        items: z.array(z.record(z.string(), z.unknown())).max(100),
+        total_usd: z.number().nonnegative(),
+        total_ngn: z.number().nonnegative(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { adminDb, syncSheet } = await import("./plain.server");
+    const { data: row, error } = await adminDb()
+      .from("orders")
+      .insert(data)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    await syncSheet("order", row);
+    return row;
+  });
+
+export const adminLoad = createServerFn({ method: "POST" })
+  .inputValidator((input) => z.object({ password: z.string() }).parse(input))
+  .handler(async ({ data }) => {
+    const { adminDb, checkPassword } = await import("./plain.server");
+    checkPassword(data.password);
+    const db = adminDb();
+    const [orders, products, gallery, settings, events] = await Promise.all([
+      db.from("orders").select("*").order("created_at", { ascending: false }).limit(500),
+      db.from("products").select("*").order("sort_order"),
+      db.from("gallery").select("*").order("sort_order"),
+      db.from("site_settings").select("value").eq("key", "site").maybeSingle(),
+      db
+        .from("analytics_events")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(2000),
+    ]);
+    return {
+      orders: orders.data ?? [],
+      products: products.data ?? [],
+      gallery: gallery.data ?? [],
+      settings: (settings.data?.value ?? {}) as Record<string, unknown>,
+      events: events.data ?? [],
+    };
+  });
+
+export const adminSaveSettings = createServerFn({ method: "POST" })
+  .inputValidator((input) =>
+    z.object({ password: z.string(), value: z.record(z.string(), z.unknown()) }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { adminDb, checkPassword, syncSheet } = await import("./plain.server");
+    checkPassword(data.password);
+    const { error } = await adminDb()
+      .from("site_settings")
+      .upsert({ key: "site", value: data.value });
+    if (error) throw new Error(error.message);
+    await syncSheet("settings", data.value);
+    return { ok: true };
+  });
+
+export const adminSaveRow = createServerFn({ method: "POST" })
+  .inputValidator((input) =>
+    z
+      .object({
+        password: z.string(),
+        table: z.enum(["products", "gallery", "orders"]),
+        action: z.enum(["upsert", "delete"]),
+        row: z.record(z.string(), z.unknown()),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { adminDb, checkPassword, syncSheet } = await import("./plain.server");
+    checkPassword(data.password);
+    const db = adminDb();
+    if (data.action === "delete") {
+      const id = data.row["id"];
+      if (typeof id !== "string" && typeof id !== "number") throw new Error("Missing id");
+      const { error } = await db.from(data.table).delete().eq("id", id);
+      if (error) throw new Error(error.message);
+      await syncSheet(`${data.table}.delete`, { id });
+      return { ok: true };
+    }
+    const row = { ...data.row };
+    if (!row["id"]) delete row["id"];
+    const { error } = await db.from(data.table).upsert(row as never);
+    if (error) throw new Error(error.message);
+    await syncSheet(`${data.table}.upsert`, row);
+    return { ok: true };
+  });
+
+export const adminImportProducts = createServerFn({ method: "POST" })
+  .inputValidator((input) =>
+    z
+      .object({
+        password: z.string(),
+        rows: z.array(z.record(z.string(), z.unknown())).max(500),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { adminDb, checkPassword, syncSheet } = await import("./plain.server");
+    checkPassword(data.password);
+    const { error } = await adminDb()
+      .from("products")
+      .upsert(data.rows as never, { onConflict: "slug" });
+    if (error) throw new Error(error.message);
+    await syncSheet("products.import", { count: data.rows.length });
+    return { imported: data.rows.length };
+  });
+
+export const adminUpload = createServerFn({ method: "POST" })
+  .inputValidator((input) =>
+    z
+      .object({
+        password: z.string(),
+        filename: z.string().max(200),
+        dataUrl: z.string().max(12_000_000),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { checkPassword, uploadMedia } = await import("./plain.server");
+    checkPassword(data.password);
+    const url = await uploadMedia(data.filename, data.dataUrl);
+    return { url };
+  });
