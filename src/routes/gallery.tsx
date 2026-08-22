@@ -1,0 +1,90 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { Header } from "@/components/site/Header";
+import { Footer } from "@/components/site/Footer";
+import { useStore } from "@/lib/store";
+import { embedUrl } from "@/lib/site";
+
+export const Route = createFileRoute("/gallery")({
+  head: () => ({
+    meta: [
+      { title: "Gallery — PLAIN Lookbook & Campaigns" },
+      {
+        name: "description",
+        content:
+          "Browse the PLAIN gallery: campaign imagery, lookbook shots and behind-the-scenes films from our essentials collection.",
+      },
+      { property: "og:title", content: "Gallery — PLAIN" },
+      { property: "og:description", content: "Campaign imagery and films from PLAIN." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: GalleryPage,
+});
+
+function GalleryPage() {
+  const { gallery, settings } = useStore();
+  const video = embedUrl(settings.galleryHeroVideo);
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main>
+        <section className="relative min-h-[60vh] overflow-hidden bg-ink text-ink-foreground">
+          {video?.kind === "video" && (
+            <video
+              src={video.src}
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          )}
+          {video?.kind === "iframe" && (
+            <iframe
+              src={video.src}
+              title="Gallery film"
+              allow="autoplay; encrypted-media"
+              className="absolute inset-0 h-full w-full"
+            />
+          )}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink via-ink/60 to-ink/20" />
+          <div className="relative mx-auto flex min-h-[60vh] max-w-7xl flex-col justify-end px-4 pb-16 pt-32 md:px-8">
+            <h1 className="font-display text-5xl rise-in md:text-7xl">
+              {settings.galleryHeroTitle}
+            </h1>
+            <p className="mt-3 max-w-xl text-sm text-ink-foreground/70">
+              {settings.galleryHeroSubtitle}
+            </p>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-7xl px-4 py-16 md:px-8">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {gallery.map((g) => (
+              <figure key={g.id} className="group relative overflow-hidden">
+                <img
+                  src={g.image_url}
+                  alt={g.title || "PLAIN gallery image"}
+                  loading="lazy"
+                  className="aspect-[4/5] w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <figcaption className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-ink/90 to-transparent p-5 text-ink-foreground opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+                  <p className="font-display text-xl">{g.title}</p>
+                  <p className="mt-1 text-xs text-ink-foreground/70">{g.description}</p>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+          {gallery.length === 0 && (
+            <p className="py-10 text-center text-sm text-muted-foreground">
+              Gallery images coming soon.
+            </p>
+          )}
+        </section>
+      </main>
+      <Footer />
+    </div>
+  );
+}

@@ -9,8 +9,8 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useStore, lineKey } from "@/lib/store";
-import { cartMessage, lineSubtotal, ngn, usd, whatsappLink } from "@/lib/site";
+import { useStore } from "@/lib/store";
+import { cartMessage, lineKey, lineSubtotal, ngn, usd, whatsappLink } from "@/lib/site";
 import { placeOrder } from "@/lib/plain.functions";
 
 export function CartSheet() {
