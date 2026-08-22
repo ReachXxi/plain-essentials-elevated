@@ -1,27 +1,27 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Star } from "lucide-react";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
-import { Hero } from "@/components/site/Hero";
+import { HeroSlider } from "@/components/site/HeroSlider";
 import { ProductCard } from "@/components/site/ProductCard";
+import { AddedToCartDialog } from "@/components/site/AddedToCartDialog";
 import { useStore } from "@/lib/store";
-import { HERO_URL } from "@/lib/catalog";
+import { trackEvent } from "@/lib/plain.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "PLAIN — Essentials. Elevated. | Premium Streetwear Nigeria" },
+      { title: "PLAIN — Essentials. Elevated. | Premium Streetwear" },
       {
         name: "description",
         content:
-          "PLAIN is a minimalist fashion label. Heavyweight organic cotton tees, graphic essentials and elevated basics. Order on WhatsApp, shipped across Nigeria.",
+          "PLAIN is a minimalist fashion label. Heavyweight organic cotton tees and elevated essentials, priced in USD with Naira conversion. Order on WhatsApp.",
       },
       { property: "og:title", content: "PLAIN — Essentials. Elevated." },
       {
         property: "og:description",
-        content:
-          "Heavyweight organic cotton tees and elevated graphic essentials from PLAIN. Order on WhatsApp.",
+        content: "Heavyweight organic cotton tees and elevated graphic essentials from PLAIN.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -30,20 +30,11 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const BRANDS = [
-  "PANGAIA",
-  "UNIQLO",
-  "COS",
-  "ARKET",
-  "NORSE PROJECTS",
-  "ACNE STUDIOS",
-];
-
 const VALUES = [
   { n: "01.", t: "Premium Quality", d: "Sourced from the finest mills worldwide." },
-  { n: "02.", t: "Transparent Pricing", d: "No hidden costs, fair margins, always." },
+  { n: "02.", t: "Transparent Pricing", d: "VAT and shipping shown before you pay." },
   { n: "03.", t: "Sustainable", d: "Eco-friendly materials and packaging." },
-  { n: "04.", t: "Free Shipping", d: "On every order over \u20A650,000." },
+  { n: "04.", t: "WhatsApp Checkout", d: "Order in seconds, no account needed." },
 ];
 
 const TESTIMONIALS = [
@@ -55,31 +46,27 @@ const TESTIMONIALS = [
 function Index() {
   const { products } = useStore();
   const [tab, setTab] = useState("All");
+
+  useEffect(() => {
+    void trackEvent({ data: { kind: "view", label: "/" } });
+  }, []);
+
   const categories = ["All", ...Array.from(new Set(products.map((p) => p.category)))];
   const filtered = tab === "All" ? products : products.filter((p) => p.category === tab);
   const featured = products.slice(0, 3);
-  const hero = HERO_URL;
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <main>
-        <Hero image={hero} />
-
-        <div className="overflow-hidden border-y bg-beige py-4">
-          <div className="marquee-track flex w-max gap-14">
-            {[...BRANDS, ...BRANDS].map((b, i) => (
-              <span key={i} className="font-accent text-[11px] text-foreground/60">
-                {b}
-              </span>
-            ))}
-          </div>
-        </div>
+        <HeroSlider />
 
         <section id="featured" className="mx-auto max-w-7xl px-4 py-20 md:px-8">
           <div className="flex items-end justify-between">
             <h2 className="font-display text-4xl md:text-5xl">Featured</h2>
-            <p className="font-accent text-[10px] text-muted-foreground">The current favourites</p>
+            <p className="font-accent text-[10px] text-muted-foreground">
+              The current favourites
+            </p>
           </div>
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {featured.map((p) => (
@@ -88,9 +75,9 @@ function Index() {
           </div>
         </section>
 
-        <section id="new-arrivals" className="bg-secondary/50 py-20">
+        <section id="shop" className="bg-secondary/50 py-20">
           <div className="mx-auto max-w-7xl px-4 md:px-8">
-            <h2 className="font-display text-4xl md:text-5xl">New Arrivals</h2>
+            <h2 className="font-display text-4xl md:text-5xl">Shop all</h2>
             <div className="mt-8 flex flex-wrap gap-2">
               {categories.map((c) => (
                 <button
@@ -127,7 +114,7 @@ function Index() {
         </section>
 
         <section className="mx-auto max-w-7xl px-4 py-20 md:px-8">
-          <h2 className="font-display text-4xl md:text-5xl">Worn & rated</h2>
+          <h2 className="font-display text-4xl md:text-5xl">Worn &amp; rated</h2>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {TESTIMONIALS.map((t) => (
               <figure key={t.a} className="border bg-card p-8">
@@ -146,25 +133,9 @@ function Index() {
             ))}
           </div>
         </section>
-
-        <section className="border-t py-16">
-          <div className="mx-auto max-w-7xl px-4 md:px-8">
-            <p className="font-accent text-[11px] text-muted-foreground">@plainstyle</p>
-            <div className="mt-6 grid grid-cols-3 gap-2 md:grid-cols-6">
-              {products.slice(0, 6).map((p) => (
-                <img
-                  key={p.id}
-                  src={p.images[0]}
-                  alt={p.name}
-                  loading="lazy"
-                  className="aspect-square w-full object-cover grayscale transition-all duration-500 hover:grayscale-0"
-                />
-              ))}
-            </div>
-          </div>
-        </section>
       </main>
       <Footer />
+      <AddedToCartDialog />
     </div>
   );
 }
