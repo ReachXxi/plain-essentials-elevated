@@ -25,6 +25,12 @@ export type GalleryItem = {
   sort_order: number;
 };
 
+export type Collection = {
+  title: string;
+  description: string;
+  image: string;
+};
+
 export type SiteSettings = {
   brand: string;
   tagline: string;
@@ -36,18 +42,26 @@ export type SiteSettings = {
   heroSlides: string[];
   primaryColor: string;
   accentColor: string;
+  inkColor: string;
   themeReference: string;
   usdToNgn: number;
   whatsapp: string;
   adEnabled: boolean;
   adText: string;
+  adSubtext: string;
   adImage: string;
   adLink: string;
+  adCta: string;
   requireReceipt: boolean;
   sheetWebhookUrl?: string;
   galleryHeroVideo: string;
   galleryHeroTitle: string;
   galleryHeroSubtitle: string;
+  collectionTitle: string;
+  collectionSubtitle: string;
+  collectionBody: string;
+  collectionImage: string;
+  collections: Collection[];
   aboutTitle: string;
   aboutBody: string;
   aboutImage: string;
@@ -58,6 +72,7 @@ export type SiteSettings = {
   contactAddress: string;
   contactImage: string;
 };
+
 
 export const defaultSettings: SiteSettings = {
   brand: "PLAIN",
