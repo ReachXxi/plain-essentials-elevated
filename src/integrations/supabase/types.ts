@@ -35,6 +35,39 @@ export type Database = {
         }
         Relationships: []
       }
+      contacts: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          phone: string
+          source: string
+          subscribed: boolean
+          tags: string[]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string
+          phone: string
+          source?: string
+          subscribed?: boolean
+          tags?: string[]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          phone?: string
+          source?: string
+          subscribed?: boolean
+          tags?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       gallery: {
         Row: {
           created_at: string
@@ -167,6 +200,30 @@ export type Database = {
           updated_at?: string
           vat_percent?: number
           video_url?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+          phone: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string
+          id: string
+          phone?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          phone?: string
+          updated_at?: string
         }
         Relationships: []
       }

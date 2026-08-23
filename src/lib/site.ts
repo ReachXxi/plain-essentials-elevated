@@ -25,6 +25,12 @@ export type GalleryItem = {
   sort_order: number;
 };
 
+export type Collection = {
+  title: string;
+  description: string;
+  image: string;
+};
+
 export type SiteSettings = {
   brand: string;
   tagline: string;
@@ -36,18 +42,26 @@ export type SiteSettings = {
   heroSlides: string[];
   primaryColor: string;
   accentColor: string;
+  inkColor: string;
   themeReference: string;
   usdToNgn: number;
   whatsapp: string;
   adEnabled: boolean;
   adText: string;
+  adSubtext: string;
   adImage: string;
   adLink: string;
+  adCta: string;
   requireReceipt: boolean;
   sheetWebhookUrl?: string;
   galleryHeroVideo: string;
   galleryHeroTitle: string;
   galleryHeroSubtitle: string;
+  collectionTitle: string;
+  collectionSubtitle: string;
+  collectionBody: string;
+  collectionImage: string;
+  collections: Collection[];
   aboutTitle: string;
   aboutBody: string;
   aboutImage: string;
@@ -58,6 +72,7 @@ export type SiteSettings = {
   contactAddress: string;
   contactImage: string;
 };
+
 
 export const defaultSettings: SiteSettings = {
   brand: "PLAIN",
@@ -70,18 +85,28 @@ export const defaultSettings: SiteSettings = {
   heroSlides: [],
   primaryColor: "#12235A",
   accentColor: "#C8A87C",
+  inkColor: "#0A1128",
   themeReference: "",
   usdToNgn: 1600,
   whatsapp: "2349074473570",
   adEnabled: true,
   adText: "",
+  adSubtext: "",
   adImage: "",
   adLink: "/",
+  adCta: "",
   requireReceipt: true,
   sheetWebhookUrl: "",
   galleryHeroVideo: "",
   galleryHeroTitle: "Welcome to PLAIN",
   galleryHeroSubtitle: "",
+  collectionTitle: "The Collection",
+  collectionSubtitle: "Season 01",
+  collectionBody:
+    "Every PLAIN piece begins as a single idea: an essential worth keeping. Heavyweight organic cotton, boxy tailored cuts and prints that hold their colour wash after wash.",
+  collectionImage: "",
+  collections: [],
+
   aboutTitle: "About",
   aboutBody: "",
   aboutImage: "",
