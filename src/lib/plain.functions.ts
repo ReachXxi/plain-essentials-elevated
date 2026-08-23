@@ -1,6 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+type Json = string | number | boolean | null | Json[] | { [k: string]: Json };
+type JsonObj = Record<string, Json>;
+
 export const getSiteData = createServerFn({ method: "GET" }).handler(async () => {
   const { adminDb } = await import("./plain.server");
   const db = adminDb();
@@ -10,7 +13,7 @@ export const getSiteData = createServerFn({ method: "GET" }).handler(async () =>
     db.from("gallery").select("*").order("sort_order"),
   ]);
   return {
-    settings: (settings.data?.value ?? {}) as Record<string, unknown>,
+    settings: (settings.data?.value ?? {}) as JsonObj,
     products: products.data ?? [],
     gallery: gallery.data ?? [],
   };
@@ -43,7 +46,7 @@ export const placeOrder = createServerFn({ method: "POST" })
     const { adminDb, syncSheet } = await import("./plain.server");
     const { data: row, error } = await adminDb()
       .from("orders")
-      .insert(data)
+      .insert(data as never)
       .select()
       .single();
     if (error) throw new Error(error.message);
@@ -72,7 +75,7 @@ export const adminLoad = createServerFn({ method: "POST" })
       orders: orders.data ?? [],
       products: products.data ?? [],
       gallery: gallery.data ?? [],
-      settings: (settings.data?.value ?? {}) as Record<string, unknown>,
+      settings: (settings.data?.value ?? {}) as JsonObj,
       events: events.data ?? [],
     };
   });
@@ -86,7 +89,7 @@ export const adminSaveSettings = createServerFn({ method: "POST" })
     checkPassword(data.password);
     const { error } = await adminDb()
       .from("site_settings")
-      .upsert({ key: "site", value: data.value });
+      .upsert({ key: "site", value: data.value as Json });
     if (error) throw new Error(error.message);
     await syncSheet("settings", data.value);
     return { ok: true };
@@ -110,7 +113,7 @@ export const adminSaveRow = createServerFn({ method: "POST" })
     if (data.action === "delete") {
       const id = data.row["id"];
       if (typeof id !== "string" && typeof id !== "number") throw new Error("Missing id");
-      const { error } = await db.from(data.table).delete().eq("id", id);
+      const { error } = await db.from(data.table).delete().eq("id", String(id));
       if (error) throw new Error(error.message);
       await syncSheet(`${data.table}.delete`, { id });
       return { ok: true };

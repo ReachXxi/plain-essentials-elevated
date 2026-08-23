@@ -1,12 +1,16 @@
+import { createHash, timingSafeEqual } from "node:crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export function adminDb() {
   return supabaseAdmin;
 }
 
+/** Constant-time check of the shared admin password. Server-only: never shipped to the browser. */
 export function checkPassword(password: string) {
   const expected = process.env["ADMIN_PASSWORD"] ?? "THEPLAINSOCIETY";
-  if (!password || password !== expected) throw new Error("Invalid admin password");
+  const a = createHash("sha256").update(String(password ?? ""), "utf8").digest();
+  const b = createHash("sha256").update(expected, "utf8").digest();
+  if (!timingSafeEqual(a, b)) throw new Error("Invalid admin password");
 }
 
 /** Mirror any change to the connected Google Sheet (Apps Script web app URL). */
