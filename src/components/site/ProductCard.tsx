@@ -1,17 +1,20 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Heart, Minus, Plus } from "lucide-react";
+import { Heart, Minus, Play, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useStore } from "@/lib/store";
-import { ngn, unitAfterDiscount, usd, type Product } from "@/lib/site";
+import { embedUrl, ngn, unitAfterDiscount, usd, type Product } from "@/lib/site";
 import { trackEvent } from "@/lib/plain.functions";
 
 export function ProductCard({ product }: { product: Product }) {
   const { wishlist, toggleWishlist, addToCart, settings } = useStore();
   const [qty, setQty] = useState(1);
+  const [live, setLive] = useState(false);
   const liked = wishlist.includes(product.id);
   const price = unitAfterDiscount(product);
   const slug = product.slug ?? product.id;
+  const video = embedUrl(product.video_url ?? "", { autoplay: true, loop: true, muted: true });
 
   const add = () => {
     addToCart({
@@ -37,8 +40,16 @@ export function ProductCard({ product }: { product: Product }) {
             src={product.images[0]}
             alt={product.name}
             loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.05]"
+            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.06]"
           />
+          {product.images[1] ? (
+            <img
+              src={product.images[1]}
+              alt={`${product.name} alternate view`}
+              loading="lazy"
+              className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-700 group-hover:opacity-100"
+            />
+          ) : null}
           {product.badge && (
             <span className="absolute left-3 top-3 bg-ink px-2 py-1 font-accent text-[9px] text-ink-foreground">
               {product.badge}
@@ -55,17 +66,29 @@ export function ProductCard({ product }: { product: Product }) {
       <button
         onClick={() => toggleWishlist(product.id)}
         aria-label="Wishlist"
-        className="absolute right-3 top-3 rounded-full bg-background/80 p-2 backdrop-blur"
+        className="absolute right-3 top-3 rounded-full bg-background/80 p-2 backdrop-blur transition-transform hover:scale-110"
       >
         <Heart className={`h-3.5 w-3.5 ${liked ? "fill-accent text-accent" : ""}`} />
       </button>
+
+      {video ? (
+        <button
+          onClick={() => {
+            setLive(true);
+            void trackEvent({ data: { kind: "click", label: `live:${product.name}` } });
+          }}
+          className="absolute bottom-[9.5rem] left-3 inline-flex items-center gap-2 bg-ink/85 px-3 py-2 font-accent text-[9px] text-ink-foreground opacity-0 backdrop-blur transition-opacity duration-300 group-hover:opacity-100"
+        >
+          <Play className="h-3 w-3" /> Live view
+        </button>
+      ) : null}
 
       <div className="pt-3">
         <p className="font-accent text-[9px] text-muted-foreground">{product.category}</p>
         <Link
           to="/product/$id"
           params={{ id: slug }}
-          className="mt-1 block text-sm font-medium"
+          className="mt-1 block text-sm font-medium transition-colors hover:text-accent"
         >
           {product.name}
         </Link>
@@ -94,11 +117,52 @@ export function ProductCard({ product }: { product: Product }) {
               <Plus className="h-3 w-3" />
             </button>
           </div>
-          <Button className="h-9 flex-1 font-accent text-[10px]" onClick={add}>
+          <Button
+            className="h-9 flex-1 font-accent text-[10px] transition-transform active:scale-95"
+            onClick={add}
+          >
             Add to Cart
           </Button>
         </div>
       </div>
+
+      <Dialog open={live} onOpenChange={setLive}>
+        <DialogContent className="max-w-3xl p-0">
+          <DialogTitle className="sr-only">{product.name} live view</DialogTitle>
+          <div className="aspect-video w-full bg-ink">
+            {video?.kind === "video" ? (
+              <video
+                src={video.src}
+                autoPlay
+                loop
+                muted
+                playsInline
+                controls
+                className="h-full w-full object-cover"
+              />
+            ) : video ? (
+              <iframe
+                src={video.src}
+                title={`${product.name} video`}
+                allow="autoplay; encrypted-media; picture-in-picture"
+                allowFullScreen
+                className="h-full w-full"
+              />
+            ) : null}
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3 p-5">
+            <div>
+              <p className="font-display text-2xl">{product.name}</p>
+              <p className="font-accent text-[10px] text-muted-foreground">
+                {usd(price)} · {ngn(price, settings.usdToNgn)}
+              </p>
+            </div>
+            <Button className="font-accent text-[10px]" onClick={add}>
+              Add to Cart
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

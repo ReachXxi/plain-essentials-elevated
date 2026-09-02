@@ -24,7 +24,11 @@ export const Route = createFileRoute("/gallery")({
 
 function GalleryPage() {
   const { gallery, settings } = useStore();
-  const video = embedUrl(settings.galleryHeroVideo);
+  const video = embedUrl(settings.galleryHeroVideo, {
+    autoplay: true,
+    loop: true,
+    muted: true,
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -45,10 +49,12 @@ function GalleryPage() {
             <iframe
               src={video.src}
               title="Gallery film"
-              allow="autoplay; encrypted-media"
-              className="absolute inset-0 h-full w-full"
+              allow="autoplay; loop; encrypted-media; picture-in-picture"
+              allowFullScreen
+              className="pointer-events-none absolute left-1/2 top-1/2 h-[130%] w-[180%] -translate-x-1/2 -translate-y-1/2"
             />
           )}
+
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink via-ink/60 to-ink/20" />
           <div className="relative mx-auto flex min-h-[60vh] max-w-7xl flex-col justify-end px-4 pb-16 pt-32 md:px-8">
             <h1 className="font-display text-5xl rise-in md:text-7xl">
