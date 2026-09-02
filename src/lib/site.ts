@@ -170,18 +170,53 @@ export function cartMessage(cart: CartLine[], rate: number, brand: string) {
 }
 
 /** Turn any video link (YouTube, Vimeo, Instagram, TikTok, X, direct file) into an embeddable URL. */
-export function embedUrl(raw: string): { kind: "iframe" | "video"; src: string } | null {
+export function embedUrl(
+  raw: string,
+  opts: { autoplay?: boolean; loop?: boolean; muted?: boolean } = {},
+): { kind: "iframe" | "video"; src: string } | null {
   const url = (raw || "").trim();
   if (!url) return null;
+  const auto = opts.autoplay ?? false;
+  const loop = opts.loop ?? false;
+
   if (/\.(mp4|webm|ogg|mov)(\?|$)/i.test(url)) return { kind: "video", src: url };
+
+  const withParams = (src: string, params: Record<string, string>) => {
+    const q = new URLSearchParams(params).toString();
+    return q ? `${src}${src.includes("?") ? "&" : "?"}${q}` : src;
+  };
 
   const yt = url.match(
     /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{6,})/i,
   );
-  if (yt?.[1]) return { kind: "iframe", src: `https://www.youtube.com/embed/${yt[1]}` };
+  if (yt?.[1]) {
+    const id = yt[1];
+    return {
+      kind: "iframe",
+      src: withParams(`https://www.youtube.com/embed/${id}`, {
+        autoplay: auto ? "1" : "0",
+        mute: auto || opts.muted ? "1" : "0",
+        loop: loop ? "1" : "0",
+        playlist: id,
+        controls: auto && loop ? "0" : "1",
+        rel: "0",
+        modestbranding: "1",
+        playsinline: "1",
+      }),
+    };
+  }
 
   const vimeo = url.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
-  if (vimeo?.[1]) return { kind: "iframe", src: `https://player.vimeo.com/video/${vimeo[1]}` };
+  if (vimeo?.[1])
+    return {
+      kind: "iframe",
+      src: withParams(`https://player.vimeo.com/video/${vimeo[1]}`, {
+        autoplay: auto ? "1" : "0",
+        muted: auto || opts.muted ? "1" : "0",
+        loop: loop ? "1" : "0",
+        background: auto && loop ? "1" : "0",
+      }),
+    };
 
   if (/instagram\.com\//i.test(url))
     return { kind: "iframe", src: url.replace(/\/?(\?.*)?$/, "/embed") };
@@ -198,3 +233,4 @@ export function embedUrl(raw: string): { kind: "iframe" | "video"; src: string }
 
   return { kind: "iframe", src: url };
 }
+

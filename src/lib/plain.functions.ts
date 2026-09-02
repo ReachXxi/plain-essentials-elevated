@@ -60,7 +60,7 @@ export const adminLoad = createServerFn({ method: "POST" })
     const { adminDb, checkPassword } = await import("./plain.server");
     checkPassword(data.password);
     const db = adminDb();
-    const [orders, products, gallery, settings, events] = await Promise.all([
+    const [orders, products, gallery, settings, events, contacts] = await Promise.all([
       db.from("orders").select("*").order("created_at", { ascending: false }).limit(500),
       db.from("products").select("*").order("sort_order"),
       db.from("gallery").select("*").order("sort_order"),
@@ -70,6 +70,7 @@ export const adminLoad = createServerFn({ method: "POST" })
         .select("*")
         .order("created_at", { ascending: false })
         .limit(2000),
+      db.from("contacts").select("*").order("created_at", { ascending: false }).limit(2000),
     ]);
     return {
       orders: orders.data ?? [],
@@ -77,8 +78,73 @@ export const adminLoad = createServerFn({ method: "POST" })
       gallery: gallery.data ?? [],
       settings: (settings.data?.value ?? {}) as JsonObj,
       events: events.data ?? [],
+      contacts: contacts.data ?? [],
     };
   });
+
+export const adminSaveContacts = createServerFn({ method: "POST" })
+  .inputValidator((input) =>
+    z
+      .object({
+        password: z.string(),
+        contacts: z
+          .array(
+            z.object({
+              name: z.string().trim().max(120).default(""),
+              phone: z.string().trim().min(6).max(30),
+              tags: z.array(z.string().max(40)).max(10).default([]),
+            }),
+          )
+          .max(2000),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { adminDb, checkPassword, syncSheet } = await import("./plain.server");
+    checkPassword(data.password);
+    const rows = data.contacts
+      .map((c) => ({
+        name: c.name,
+        phone: c.phone.replace(/\D/g, ""),
+        tags: c.tags,
+        source: "import",
+      }))
+      .filter((c) => c.phone.length >= 6);
+    if (rows.length === 0) return { imported: 0 };
+    const { error } = await adminDb()
+      .from("contacts")
+      .upsert(rows as never, { onConflict: "phone", ignoreDuplicates: true });
+    if (error) throw new Error(error.message);
+    await syncSheet("contacts.import", { count: rows.length });
+    return { imported: rows.length };
+  });
+
+export const adminDeleteContact = createServerFn({ method: "POST" })
+  .inputValidator((input) => z.object({ password: z.string(), id: z.string() }).parse(input))
+  .handler(async ({ data }) => {
+    const { adminDb, checkPassword } = await import("./plain.server");
+    checkPassword(data.password);
+    const { error } = await adminDb().from("contacts").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const adminLogBroadcast = createServerFn({ method: "POST" })
+  .inputValidator((input) =>
+    z
+      .object({ password: z.string(), message: z.string().max(2000), recipients: z.number() })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { checkPassword, syncSheet } = await import("./plain.server");
+    checkPassword(data.password);
+    await syncSheet("newsletter.broadcast", {
+      message: data.message,
+      recipients: data.recipients,
+    });
+    return { ok: true };
+  });
+
 
 export const adminSaveSettings = createServerFn({ method: "POST" })
   .inputValidator((input) =>
