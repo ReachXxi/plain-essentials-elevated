@@ -60,6 +60,16 @@ type OrderRow = {
 
 type EventRow = { id: number; kind: string; label: string; created_at: string };
 
+type ContactRow = {
+  id: string;
+  name: string;
+  phone: string;
+  source: string;
+  subscribed: boolean;
+  created_at: string;
+};
+
+
 const emptyProduct = (): Product => ({
   id: "",
   name: "",
@@ -124,6 +134,10 @@ function AdminPage() {
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [events, setEvents] = useState<EventRow[]>([]);
   const [editing, setEditing] = useState<Product | null>(null);
+  const [contacts, setContacts] = useState<ContactRow[]>([]);
+  const [broadcast, setBroadcast] = useState("");
+  const [selected, setSelected] = useState<string[]>([]);
+
 
   const load = async (pw: string) => {
     setBusy(true);
@@ -134,6 +148,8 @@ function AdminPage() {
       setGallery(d.gallery as GalleryItem[]);
       setOrders(d.orders as OrderRow[]);
       setEvents(d.events as EventRow[]);
+      setContacts((d.contacts ?? []) as ContactRow[]);
+
       setAuthed(true);
     } catch {
       toast.error("Incorrect password");
@@ -245,7 +261,11 @@ function AdminPage() {
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="gallery">Gallery</TabsTrigger>
             <TabsTrigger value="pages">Pages</TabsTrigger>
+            <TabsTrigger value="theme">Theme</TabsTrigger>
+            <TabsTrigger value="collection">Collection</TabsTrigger>
+            <TabsTrigger value="newsletter">Newsletter</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>
+
           </TabsList>
 
           <TabsContent value="dashboard" className="mt-6 space-y-6">
@@ -370,7 +390,14 @@ function AdminPage() {
                 <Label className="font-accent text-[10px]">Show ads banner</Label>
               </div>
               <Field label="Ad text" v={settings.adText} on={(v) => set("adText", v)} />
+              <Field
+                label="Ad subtext"
+                v={settings.adSubtext ?? ""}
+                on={(v) => set("adSubtext", v)}
+              />
+              <Field label="Ad button label" v={settings.adCta ?? ""} on={(v) => set("adCta", v)} />
               <Field label="Ad link" v={settings.adLink} on={(v) => set("adLink", v)} />
+
               <input
                 type="file"
                 accept="image/*"
