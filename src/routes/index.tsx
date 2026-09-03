@@ -6,8 +6,11 @@ import { Footer } from "@/components/site/Footer";
 import { HeroSlider } from "@/components/site/HeroSlider";
 import { ProductCard } from "@/components/site/ProductCard";
 import { AddedToCartDialog } from "@/components/site/AddedToCartDialog";
+import { CollectionSection } from "@/components/site/CollectionSection";
+import { Reveal } from "@/components/site/Reveal";
 import { useStore } from "@/lib/store";
 import { trackEvent } from "@/lib/plain.functions";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -69,11 +72,15 @@ function Index() {
             </p>
           </div>
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {featured.map((p) => (
-              <ProductCard key={p.id} product={p} />
+            {featured.map((p, i) => (
+              <Reveal key={p.id} delay={i * 90}>
+                <ProductCard product={p} />
+              </Reveal>
             ))}
           </div>
         </section>
+
+        <CollectionSection />
 
         <section id="shop" className="bg-secondary/50 py-20">
           <div className="mx-auto max-w-7xl px-4 md:px-8">
@@ -83,10 +90,10 @@ function Index() {
                 <button
                   key={c}
                   onClick={() => setTab(c)}
-                  className={`border px-4 py-2 font-accent text-[10px] transition-colors ${
+                  className={`border px-4 py-2 font-accent text-[10px] transition-all duration-300 ${
                     tab === c
                       ? "border-ink bg-ink text-ink-foreground"
-                      : "border-border bg-background hover:border-ink"
+                      : "border-border bg-background hover:-translate-y-0.5 hover:border-ink"
                   }`}
                 >
                   {c}
@@ -94,12 +101,15 @@ function Index() {
               ))}
             </div>
             <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {filtered.map((p) => (
-                <ProductCard key={p.id} product={p} />
+              {filtered.map((p, i) => (
+                <Reveal key={p.id} delay={(i % 4) * 80}>
+                  <ProductCard product={p} />
+                </Reveal>
               ))}
             </div>
           </div>
         </section>
+
 
         <section className="bg-ink py-20 text-ink-foreground">
           <div className="mx-auto grid max-w-7xl gap-10 px-4 md:grid-cols-4 md:px-8">
