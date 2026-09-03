@@ -269,3 +269,59 @@
     background-position: -130% 0;
   }
 }
+
+@utility link-underline {
+  position: relative;
+}
+
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  height: 1px;
+  width: 0;
+  background-color: var(--accent);
+  transition: width 350ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.link-underline:hover::after {
+  width: 100%;
+}
+
+@utility float-slow {
+  animation: float-kf 7s ease-in-out infinite;
+}
+
+@keyframes float-kf {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@utility pulse-ring {
+  animation: pulse-ring-kf 2.4s ease-out infinite;
+}
+
+@keyframes pulse-ring-kf {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 55%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 16px transparent;
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  ::selection {
+    background-color: color-mix(in oklab, var(--accent) 45%, transparent);
+  }
+}
