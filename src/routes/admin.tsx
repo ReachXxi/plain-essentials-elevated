@@ -8,8 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  adminDeleteContact,
   adminImportProducts,
   adminLoad,
+  adminLogBroadcast,
+  adminSaveContacts,
   adminSaveRow,
   adminSaveSettings,
   adminUpload,
@@ -18,11 +21,14 @@ import {
   defaultSettings,
   ngn,
   usd,
+  whatsappLink,
+  type Collection,
   type GalleryItem,
   type Product,
   type SiteSettings,
 } from "@/lib/site";
 import { useStore } from "@/lib/store";
+
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -53,6 +59,16 @@ type OrderRow = {
 };
 
 type EventRow = { id: number; kind: string; label: string; created_at: string };
+
+type ContactRow = {
+  id: string;
+  name: string;
+  phone: string;
+  source: string;
+  subscribed: boolean;
+  created_at: string;
+};
+
 
 const emptyProduct = (): Product => ({
   id: "",
@@ -118,6 +134,10 @@ function AdminPage() {
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [events, setEvents] = useState<EventRow[]>([]);
   const [editing, setEditing] = useState<Product | null>(null);
+  const [contacts, setContacts] = useState<ContactRow[]>([]);
+  const [broadcast, setBroadcast] = useState("");
+  const [selected, setSelected] = useState<string[]>([]);
+
 
   const load = async (pw: string) => {
     setBusy(true);
@@ -128,6 +148,8 @@ function AdminPage() {
       setGallery(d.gallery as GalleryItem[]);
       setOrders(d.orders as OrderRow[]);
       setEvents(d.events as EventRow[]);
+      setContacts((d.contacts ?? []) as ContactRow[]);
+
       setAuthed(true);
     } catch {
       toast.error("Incorrect password");
@@ -239,7 +261,11 @@ function AdminPage() {
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="gallery">Gallery</TabsTrigger>
             <TabsTrigger value="pages">Pages</TabsTrigger>
+            <TabsTrigger value="theme">Theme</TabsTrigger>
+            <TabsTrigger value="collection">Collection</TabsTrigger>
+            <TabsTrigger value="newsletter">Newsletter</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>
+
           </TabsList>
 
           <TabsContent value="dashboard" className="mt-6 space-y-6">
@@ -364,7 +390,14 @@ function AdminPage() {
                 <Label className="font-accent text-[10px]">Show ads banner</Label>
               </div>
               <Field label="Ad text" v={settings.adText} on={(v) => set("adText", v)} />
+              <Field
+                label="Ad subtext"
+                v={settings.adSubtext ?? ""}
+                on={(v) => set("adSubtext", v)}
+              />
+              <Field label="Ad button label" v={settings.adCta ?? ""} on={(v) => set("adCta", v)} />
               <Field label="Ad link" v={settings.adLink} on={(v) => set("adLink", v)} />
+
               <input
                 type="file"
                 accept="image/*"
@@ -394,6 +427,303 @@ function AdminPage() {
               />
             </div>
           </TabsContent>
+
+          <TabsContent value="theme" className="mt-6 space-y-4">
+            <div className="grid gap-4 border bg-card p-5 sm:grid-cols-3">
+              {(
+                [
+                  ["Primary colour", "primaryColor"],
+                  ["Accent colour", "accentColor"],
+                  ["Ink / dark colour", "inkColor"],
+                ] as const
+              ).map(([label, key]) => (
+                <div key={key} className="space-y-2">
+                  <Label className="font-accent text-[10px]">{label}</Label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      aria-label={label}
+                      value={settings[key] || "#000000"}
+                      onChange={(e) => set(key, e.target.value)}
+                      className="h-10 w-14 cursor-pointer border bg-background"
+                    />
+                    <Input value={settings[key]} onChange={(e) => set(key, e.target.value)} />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-2 border bg-card p-5">
+              <p className="w-full font-accent text-[10px]">Quick palettes</p>
+              {[
+                { n: "Blue & Gold", p: "#12235A", a: "#C8A87C", i: "#0A1128" },
+                { n: "Monochrome", p: "#141414", a: "#8A8A8A", i: "#0A0A0A" },
+                { n: "Forest", p: "#14452F", a: "#D2B48C", i: "#0B241A" },
+                { n: "Wine", p: "#5B1A2B", a: "#E0B973", i: "#1A0A10" },
+              ].map((t) => (
+                <button
+                  key={t.n}
+                  className="flex items-center gap-2 border px-3 py-2 font-accent text-[10px] transition-transform hover:-translate-y-0.5"
+                  onClick={() => {
+                    set("primaryColor", t.p);
+                    set("accentColor", t.a);
+                    set("inkColor", t.i);
+                  }}
+                >
+                  <span className="h-4 w-4" style={{ background: t.p }} />
+                  <span className="h-4 w-4" style={{ background: t.a }} />
+                  {t.n}
+                </button>
+              ))}
+              <p className="w-full text-xs text-muted-foreground">
+                Colours apply live across light and dark mode after you press Save changes.
+              </p>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="collection" className="mt-6 space-y-4">
+            <div className="grid gap-4 border bg-card p-5 sm:grid-cols-2">
+              <Field
+                label="Collection kicker"
+                v={settings.collectionSubtitle}
+                on={(v) => set("collectionSubtitle", v)}
+              />
+              <Field
+                label="Collection title"
+                v={settings.collectionTitle}
+                on={(v) => set("collectionTitle", v)}
+              />
+              <div className="sm:col-span-2">
+                <Label className="font-accent text-[10px]">Collection description</Label>
+                <Textarea
+                  rows={4}
+                  value={settings.collectionBody}
+                  onChange={(e) => set("collectionBody", e.target.value)}
+                />
+              </div>
+              <div className="sm:col-span-2 space-y-2">
+                <Label className="font-accent text-[10px]">Collection image</Label>
+                {settings.collectionImage && (
+                  <img src={settings.collectionImage} alt="" className="h-28 w-24 object-cover" />
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const f = e.target.files?.[0];
+                    if (!f) return;
+                    const url = await upload(f);
+                    if (url) set("collectionImage", url);
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4 border bg-card p-5">
+              <div className="flex items-center justify-between">
+                <p className="font-accent text-[10px]">Designs in this collection</p>
+                <Button
+                  variant="outline"
+                  className="font-accent text-[10px]"
+                  onClick={() =>
+                    set("collections", [
+                      ...settings.collections,
+                      { title: "", description: "", image: "" },
+                    ])
+                  }
+                >
+                  Add design
+                </Button>
+              </div>
+              {settings.collections.map((c, i) => {
+                const upd = (patch: Partial<Collection>) =>
+                  set(
+                    "collections",
+                    settings.collections.map((x, xi) => (xi === i ? { ...x, ...patch } : x)),
+                  );
+                return (
+                  <div key={i} className="grid gap-3 border p-4 sm:grid-cols-2">
+                    <Field label="Title" v={c.title} on={(v) => upd({ title: v })} />
+                    <Field
+                      label="Description"
+                      v={c.description}
+                      on={(v) => upd({ description: v })}
+                    />
+                    <div className="space-y-2">
+                      {c.image && <img src={c.image} alt="" className="h-24 w-20 object-cover" />}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const f = e.target.files?.[0];
+                          if (!f) return;
+                          const url = await upload(f);
+                          if (url) upd({ image: url });
+                        }}
+                      />
+                    </div>
+                    <div className="flex items-end">
+                      <Button
+                        variant="outline"
+                        className="font-accent text-[10px]"
+                        onClick={() =>
+                          set(
+                            "collections",
+                            settings.collections.filter((_, xi) => xi !== i),
+                          )
+                        }
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="newsletter" className="mt-6 space-y-4">
+            <div className="space-y-3 border bg-card p-5">
+              <p className="font-accent text-[10px]">
+                Contacts ({contacts.length}) · selected {selected.length}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <label className="inline-flex cursor-pointer items-center border bg-background px-4 py-2 font-accent text-[10px]">
+                  Import contacts CSV
+                  <input
+                    type="file"
+                    accept=".csv"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const f = e.target.files?.[0];
+                      if (!f) return;
+                      const rows = parseCsv(await f.text())
+                        .map((r) => ({
+                          name: r["name"] ?? "",
+                          phone: r["phone"] ?? r["number"] ?? "",
+                          tags: (r["tags"] ?? "").split("|").filter(Boolean),
+                        }))
+                        .filter((r) => r.phone);
+                      try {
+                        await adminSaveContacts({ data: { password, contacts: rows } });
+                        await load(password);
+                        toast.success(`Imported ${rows.length} contacts`);
+                      } catch {
+                        toast.error("Import failed");
+                      }
+                    }}
+                  />
+                </label>
+                <Button
+                  variant="outline"
+                  className="font-accent text-[10px]"
+                  onClick={() => setSelected(contacts.map((c) => c.id))}
+                >
+                  Select all
+                </Button>
+                <Button
+                  variant="outline"
+                  className="font-accent text-[10px]"
+                  onClick={() => setSelected([])}
+                >
+                  Clear selection
+                </Button>
+                <Button
+                  variant="outline"
+                  className="font-accent text-[10px]"
+                  onClick={() =>
+                    download("contacts.csv", toCsv(contacts as unknown as Record<string, unknown>[]))
+                  }
+                >
+                  Export CSV
+                </Button>
+              </div>
+
+              <div className="max-h-72 overflow-auto border">
+                {contacts.map((c) => (
+                  <div
+                    key={c.id}
+                    className="flex items-center justify-between gap-3 border-b px-3 py-2 text-sm last:border-b-0"
+                  >
+                    <label className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selected.includes(c.id)}
+                        onChange={(e) =>
+                          setSelected((s) =>
+                            e.target.checked ? [...s, c.id] : s.filter((x) => x !== c.id),
+                          )
+                        }
+                      />
+                      <span>
+                        {c.name || "Customer"}{" "}
+                        <span className="text-muted-foreground">· {c.phone}</span>
+                      </span>
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <span className="font-accent text-[9px] text-muted-foreground">
+                        {c.source}
+                      </span>
+                      <button
+                        className="font-accent text-[10px] text-muted-foreground underline"
+                        onClick={async () => {
+                          await adminDeleteContact({ data: { password, id: c.id } });
+                          await load(password);
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {contacts.length === 0 && (
+                  <p className="p-4 text-sm text-muted-foreground">
+                    No contacts yet. Orders add customers automatically.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-3 border bg-card p-5">
+              <Label className="font-accent text-[10px]">Broadcast message</Label>
+              <Textarea
+                rows={5}
+                value={broadcast}
+                placeholder="New drop is live. Shop the collection: https://plain-ng.lovable.app"
+                onChange={(e) => setBroadcast(e.target.value)}
+              />
+              <Button
+                className="font-accent text-[10px]"
+                disabled={busy || !broadcast.trim() || selected.length === 0}
+                onClick={async () => {
+                  const list = contacts.filter(
+                    (c) => selected.includes(c.id) && c.subscribed !== false,
+                  );
+                  try {
+                    await adminLogBroadcast({
+                      data: { password, message: broadcast, recipients: list.length },
+                    });
+                  } catch {
+                    /* logging is best effort */
+                  }
+                  list.forEach((c, i) => {
+                    setTimeout(
+                      () => window.open(whatsappLink(c.phone, broadcast), "_blank", "noopener"),
+                      i * 600,
+                    );
+                  });
+                  toast.success(`Opening WhatsApp for ${list.length} contacts`);
+                }}
+              >
+                Send WhatsApp broadcast
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Each contact opens in a WhatsApp tab with your message pre-filled — allow pop-ups so
+                every chat opens. Every broadcast is logged to your Google Sheet.
+              </p>
+            </div>
+          </TabsContent>
+
+
 
           <TabsContent value="products" className="mt-6 space-y-4">
             <div className="flex flex-wrap gap-2">
