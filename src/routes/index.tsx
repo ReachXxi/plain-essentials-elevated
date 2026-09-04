@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Star } from "lucide-react";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { HeroSlider } from "@/components/site/HeroSlider";
@@ -40,11 +39,6 @@ const VALUES = [
   { n: "04.", t: "WhatsApp Checkout", d: "Order in seconds, no account needed." },
 ];
 
-const TESTIMONIALS = [
-  { q: "Best quality tee I have ever owned. The weight is unreal.", a: "Alex, Lagos" },
-  { q: "Fit is perfect and delivery took two days. Repeat customer.", a: "Zainab, Abuja" },
-  { q: "The prints do not crack. That alone sold me.", a: "Tobi, Ibadan" },
-];
 
 function Index() {
   const { products } = useStore();
@@ -123,26 +117,6 @@ function Index() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-4 py-20 md:px-8">
-          <h2 className="font-display text-4xl md:text-5xl">Worn &amp; rated</h2>
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {TESTIMONIALS.map((t) => (
-              <figure key={t.a} className="border bg-card p-8">
-                <div className="flex gap-1 text-accent">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className="h-3.5 w-3.5 fill-current" />
-                  ))}
-                </div>
-                <blockquote className="mt-5 font-display text-xl leading-snug">
-                  “{t.q}”
-                </blockquote>
-                <figcaption className="mt-5 font-accent text-[10px] text-muted-foreground">
-                  — {t.a}
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        </section>
       </main>
       <Footer />
       <AddedToCartDialog />

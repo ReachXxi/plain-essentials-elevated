@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
+import { PageHero } from "@/components/site/PageHero";
 import { useStore } from "@/lib/store";
 
 export const Route = createFileRoute("/about")({
@@ -27,17 +28,19 @@ function AboutPage() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="mx-auto max-w-5xl px-4 py-20 md:px-8">
-        <h1 className="font-display text-5xl md:text-6xl">{settings.aboutTitle}</h1>
-        {settings.aboutImage && (
-          <img
-            src={settings.aboutImage}
-            alt="Inside the PLAIN studio"
-            className="mt-10 aspect-[16/9] w-full object-cover"
-          />
-        )}
-        <div className="mt-10 whitespace-pre-line text-base leading-relaxed text-muted-foreground">
-          {settings.aboutBody}
+      <main>
+        <PageHero kicker="Our story" title={settings.aboutTitle} subtitle={settings.tagline} />
+        <div className="mx-auto max-w-5xl px-4 py-20 md:px-8">
+          {settings.aboutImage && (
+            <img
+              src={settings.aboutImage}
+              alt="Inside the PLAIN studio"
+              className="aspect-[16/9] w-full object-cover"
+            />
+          )}
+          <div className="mt-10 whitespace-pre-line text-base leading-relaxed text-muted-foreground">
+            {settings.aboutBody}
+          </div>
         </div>
       </main>
       <Footer />

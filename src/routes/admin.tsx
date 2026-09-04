@@ -136,6 +136,7 @@ function AdminPage() {
   const [editing, setEditing] = useState<Product | null>(null);
   const [contacts, setContacts] = useState<ContactRow[]>([]);
   const [broadcast, setBroadcast] = useState("");
+  const [lastPublished, setLastPublished] = useState<string | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
 
 
@@ -160,16 +161,47 @@ function AdminPage() {
   const set = <K extends keyof SiteSettings>(k: K, v: SiteSettings[K]) =>
     setSettings((s) => ({ ...s, [k]: v }));
 
+  /**
+   * Save changes = publish everything: settings, every product and every
+   * gallery item are written to the live database in one go, then all open
+   * storefronts are told to refetch.
+   */
   const saveSettings = async () => {
     setBusy(true);
     try {
       await adminSaveSettings({
         data: { password, value: settings as unknown as Record<string, unknown> },
       });
+      for (const p of products) {
+        await adminSaveRow({
+          data: {
+            password,
+            table: "products",
+            action: "upsert",
+            row: p as unknown as Record<string, unknown>,
+          },
+        });
+      }
+      for (const g of gallery) {
+        await adminSaveRow({
+          data: {
+            password,
+            table: "gallery",
+            action: "upsert",
+            row: g as unknown as Record<string, unknown>,
+          },
+        });
+      }
       refresh();
-      toast.success("Saved and live");
+      setLastPublished(new Date().toLocaleTimeString());
+      try {
+        localStorage.setItem("plain.published", String(Date.now()));
+      } catch {
+        /* ignore */
+      }
+      toast.success("Published — everything is live");
     } catch {
-      toast.error("Save failed");
+      toast.error("Publish failed");
     }
     setBusy(false);
   };
@@ -213,9 +245,17 @@ function AdminPage() {
 
   if (!authed) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-ink px-4">
-        <div className="w-full max-w-sm space-y-4 bg-background p-8">
-          <h1 className="font-display text-3xl">Admin</h1>
+      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-ink px-4">
+        <div className="pointer-events-none absolute -left-24 top-1/4 h-72 w-72 rounded-full bg-accent/20 blur-3xl float-slow" />
+        <div className="pointer-events-none absolute -right-24 bottom-1/4 h-72 w-72 rounded-full bg-primary/30 blur-3xl float-slow" />
+        <div className="relative w-full max-w-sm space-y-5 border border-white/10 bg-background/95 p-9 shadow-2xl rise-in">
+          <div>
+            <p className="font-accent text-[10px] text-accent">PLAIN</p>
+            <h1 className="mt-2 font-display text-3xl">Control centre</h1>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Enter your admin password to manage the live store.
+            </p>
+          </div>
           <Input
             type="password"
             placeholder="Password"
@@ -228,7 +268,7 @@ function AdminPage() {
             disabled={busy}
             onClick={() => void load(password)}
           >
-            Enter
+            {busy ? "Checking…" : "Enter"}
           </Button>
         </div>
       </div>
@@ -242,30 +282,56 @@ function AdminPage() {
 
   return (
     <div className="min-h-screen bg-secondary/40">
-      <div className="mx-auto max-w-6xl px-4 py-10 md:px-8">
-        <div className="flex items-center justify-between">
-          <h1 className="font-display text-4xl">Control panel</h1>
-          <Button
-            className="font-accent text-[10px]"
-            disabled={busy}
-            onClick={() => void saveSettings()}
-          >
-            Save changes
-          </Button>
+      <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 md:px-8">
+          <div>
+            <p className="font-accent text-[10px] text-accent">PLAIN</p>
+            <h1 className="font-display text-2xl leading-tight md:text-3xl">Control centre</h1>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="hidden font-accent text-[10px] text-muted-foreground sm:inline">
+              {lastPublished ? `Published ${lastPublished}` : "Unsaved edits stay local"}
+            </span>
+            <Button
+              variant="outline"
+              className="font-accent text-[10px]"
+              disabled={busy}
+              onClick={() => void load(password)}
+            >
+              Reload
+            </Button>
+            <Button
+              className="font-accent text-[10px]"
+              disabled={busy}
+              onClick={() => void saveSettings()}
+            >
+              {busy ? "Publishing…" : "Save changes"}
+            </Button>
+          </div>
         </div>
-
-        <Tabs defaultValue="dashboard" className="mt-8">
-          <TabsList className="flex-wrap">
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="landing">Landing</TabsTrigger>
-            <TabsTrigger value="products">Products</TabsTrigger>
-            <TabsTrigger value="gallery">Gallery</TabsTrigger>
-            <TabsTrigger value="pages">Pages</TabsTrigger>
-            <TabsTrigger value="theme">Theme</TabsTrigger>
-            <TabsTrigger value="collection">Collection</TabsTrigger>
-            <TabsTrigger value="newsletter">Newsletter</TabsTrigger>
-            <TabsTrigger value="orders">Orders</TabsTrigger>
-
+      </header>
+      <div className="mx-auto max-w-6xl px-4 py-8 md:px-8">
+        <Tabs defaultValue="dashboard">
+          <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 bg-card p-1">
+            {[
+              ["dashboard", "Dashboard"],
+              ["landing", "Landing"],
+              ["products", "Products"],
+              ["gallery", "Gallery"],
+              ["pages", "Pages"],
+              ["theme", "Theme"],
+              ["collection", "Collection"],
+              ["newsletter", "Newsletter"],
+              ["orders", "Orders"],
+            ].map(([v, l]) => (
+              <TabsTrigger
+                key={v}
+                value={v!}
+                className="font-accent text-[10px] data-[state=active]:bg-foreground data-[state=active]:text-background"
+              >
+                {l}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
           <TabsContent value="dashboard" className="mt-6 space-y-6">
