@@ -136,6 +136,7 @@ function AdminPage() {
   const [editing, setEditing] = useState<Product | null>(null);
   const [contacts, setContacts] = useState<ContactRow[]>([]);
   const [broadcast, setBroadcast] = useState("");
+  const [lastPublished, setLastPublished] = useState<string | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
 
 
