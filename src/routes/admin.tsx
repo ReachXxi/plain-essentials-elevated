@@ -282,30 +282,56 @@ function AdminPage() {
 
   return (
     <div className="min-h-screen bg-secondary/40">
-      <div className="mx-auto max-w-6xl px-4 py-10 md:px-8">
-        <div className="flex items-center justify-between">
-          <h1 className="font-display text-4xl">Control panel</h1>
-          <Button
-            className="font-accent text-[10px]"
-            disabled={busy}
-            onClick={() => void saveSettings()}
-          >
-            Save changes
-          </Button>
+      <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 md:px-8">
+          <div>
+            <p className="font-accent text-[10px] text-accent">PLAIN</p>
+            <h1 className="font-display text-2xl leading-tight md:text-3xl">Control centre</h1>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="hidden font-accent text-[10px] text-muted-foreground sm:inline">
+              {lastPublished ? `Published ${lastPublished}` : "Unsaved edits stay local"}
+            </span>
+            <Button
+              variant="outline"
+              className="font-accent text-[10px]"
+              disabled={busy}
+              onClick={() => void load(password)}
+            >
+              Reload
+            </Button>
+            <Button
+              className="font-accent text-[10px]"
+              disabled={busy}
+              onClick={() => void saveSettings()}
+            >
+              {busy ? "Publishing…" : "Save changes"}
+            </Button>
+          </div>
         </div>
-
-        <Tabs defaultValue="dashboard" className="mt-8">
-          <TabsList className="flex-wrap">
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="landing">Landing</TabsTrigger>
-            <TabsTrigger value="products">Products</TabsTrigger>
-            <TabsTrigger value="gallery">Gallery</TabsTrigger>
-            <TabsTrigger value="pages">Pages</TabsTrigger>
-            <TabsTrigger value="theme">Theme</TabsTrigger>
-            <TabsTrigger value="collection">Collection</TabsTrigger>
-            <TabsTrigger value="newsletter">Newsletter</TabsTrigger>
-            <TabsTrigger value="orders">Orders</TabsTrigger>
-
+      </header>
+      <div className="mx-auto max-w-6xl px-4 py-8 md:px-8">
+        <Tabs defaultValue="dashboard">
+          <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 bg-card p-1">
+            {[
+              ["dashboard", "Dashboard"],
+              ["landing", "Landing"],
+              ["products", "Products"],
+              ["gallery", "Gallery"],
+              ["pages", "Pages"],
+              ["theme", "Theme"],
+              ["collection", "Collection"],
+              ["newsletter", "Newsletter"],
+              ["orders", "Orders"],
+            ].map(([v, l]) => (
+              <TabsTrigger
+                key={v}
+                value={v!}
+                className="font-accent text-[10px] data-[state=active]:bg-foreground data-[state=active]:text-background"
+              >
+                {l}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
           <TabsContent value="dashboard" className="mt-6 space-y-6">
