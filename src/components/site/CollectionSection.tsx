@@ -17,33 +17,44 @@ export function CollectionSection({ full = false }: { full?: boolean }) {
   return (
     <section id="collection" className="relative overflow-hidden bg-background py-20">
       <div className="mx-auto max-w-7xl px-4 md:px-8">
-        <div className="grid gap-10 md:grid-cols-2 md:items-center">
-          <Reveal>
-            <p className="font-accent text-[10px] text-accent">{settings.collectionSubtitle}</p>
-            <h2 className="mt-3 font-display text-4xl md:text-6xl">{settings.collectionTitle}</h2>
-            <p className="mt-5 max-w-lg text-sm leading-relaxed text-muted-foreground">
-              {settings.collectionBody}
-            </p>
-            {!full && (
+        {full ? (
+          settings.collectionImage ? (
+            <Reveal>
+              <img
+                src={settings.collectionImage}
+                alt={settings.collectionTitle}
+                loading="lazy"
+                className="aspect-[16/7] w-full object-cover"
+              />
+            </Reveal>
+          ) : null
+        ) : (
+          <div className="grid gap-10 md:grid-cols-2 md:items-center">
+            <Reveal>
+              <p className="font-accent text-[10px] text-accent">{settings.collectionSubtitle}</p>
+              <h2 className="mt-3 font-display text-4xl md:text-6xl">{settings.collectionTitle}</h2>
+              <p className="mt-5 max-w-lg text-sm leading-relaxed text-muted-foreground">
+                {settings.collectionBody}
+              </p>
               <Link
                 to="/collection"
                 className="mt-7 inline-flex items-center gap-2 border border-foreground px-6 py-3 font-accent text-[10px] transition-colors hover:bg-foreground hover:text-background"
               >
                 Explore the collection <ArrowRight className="h-3 w-3" />
               </Link>
-            )}
-          </Reveal>
-          {settings.collectionImage ? (
-            <Reveal delay={120}>
-              <img
-                src={settings.collectionImage}
-                alt={settings.collectionTitle}
-                loading="lazy"
-                className="aspect-[4/5] w-full object-cover"
-              />
             </Reveal>
-          ) : null}
-        </div>
+            {settings.collectionImage ? (
+              <Reveal delay={120}>
+                <img
+                  src={settings.collectionImage}
+                  alt={settings.collectionTitle}
+                  loading="lazy"
+                  className="aspect-[4/5] w-full object-cover"
+                />
+              </Reveal>
+            ) : null}
+          </div>
+        )}
 
         <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {collections.map((c, i) => (
