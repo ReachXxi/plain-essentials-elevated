@@ -34,19 +34,11 @@ function CollectionPage() {
     <div className="min-h-screen bg-background">
       <Header />
       <main>
-        <section className="bg-ink py-24 text-ink-foreground">
-          <div className="mx-auto max-w-7xl px-4 md:px-8">
-            <p className="font-accent text-[10px] text-accent rise-in">
-              {settings.collectionSubtitle}
-            </p>
-            <h1 className="mt-3 font-display text-5xl rise-in md:text-7xl">
-              {settings.collectionTitle}
-            </h1>
-            <p className="mt-5 max-w-2xl text-sm text-ink-foreground/70">
-              {settings.collectionBody}
-            </p>
-          </div>
-        </section>
+        <PageHero
+          kicker={settings.collectionSubtitle}
+          title={settings.collectionTitle}
+          subtitle={settings.collectionBody}
+        />
 
         <CollectionSection full />
 
