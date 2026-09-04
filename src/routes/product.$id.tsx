@@ -182,6 +182,19 @@ function ProductPage() {
               Add to Cart
             </Button>
           </div>
+
+          {video && (
+            <Button
+              variant="outline"
+              className="mt-4 h-12 w-full gap-2 font-accent text-[11px]"
+              onClick={() => {
+                setVideoOpen(true);
+                void trackEvent({ data: { kind: "click", label: `live-view:${product.name}` } });
+              }}
+            >
+              <Play className="h-3.5 w-3.5" /> Live video preview
+            </Button>
+          )}
         </div>
       </main>
 
