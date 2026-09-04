@@ -245,9 +245,17 @@ function AdminPage() {
 
   if (!authed) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-ink px-4">
-        <div className="w-full max-w-sm space-y-4 bg-background p-8">
-          <h1 className="font-display text-3xl">Admin</h1>
+      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-ink px-4">
+        <div className="pointer-events-none absolute -left-24 top-1/4 h-72 w-72 rounded-full bg-accent/20 blur-3xl float-slow" />
+        <div className="pointer-events-none absolute -right-24 bottom-1/4 h-72 w-72 rounded-full bg-primary/30 blur-3xl float-slow" />
+        <div className="relative w-full max-w-sm space-y-5 border border-white/10 bg-background/95 p-9 shadow-2xl rise-in">
+          <div>
+            <p className="font-accent text-[10px] text-accent">PLAIN</p>
+            <h1 className="mt-2 font-display text-3xl">Control centre</h1>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Enter your admin password to manage the live store.
+            </p>
+          </div>
           <Input
             type="password"
             placeholder="Password"
@@ -260,7 +268,7 @@ function AdminPage() {
             disabled={busy}
             onClick={() => void load(password)}
           >
-            Enter
+            {busy ? "Checking…" : "Enter"}
           </Button>
         </div>
       </div>
