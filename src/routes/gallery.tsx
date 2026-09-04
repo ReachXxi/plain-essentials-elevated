@@ -34,37 +34,34 @@ function GalleryPage() {
     <div className="min-h-screen bg-background">
       <Header />
       <main>
-        <section className="relative min-h-[60vh] overflow-hidden bg-ink text-ink-foreground">
-          {video?.kind === "video" && (
-            <video
-              src={video.src}
-              autoPlay
-              muted
-              loop
-              playsInline
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-          )}
-          {video?.kind === "iframe" && (
-            <iframe
-              src={video.src}
-              title="Gallery film"
-              allow="autoplay; loop; encrypted-media; picture-in-picture"
-              allowFullScreen
-              className="pointer-events-none absolute left-1/2 top-1/2 h-[130%] w-[180%] -translate-x-1/2 -translate-y-1/2"
-            />
-          )}
-
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink via-ink/60 to-ink/20" />
-          <div className="relative mx-auto flex min-h-[60vh] max-w-7xl flex-col justify-end px-4 pb-16 pt-32 md:px-8">
-            <h1 className="font-display text-5xl rise-in md:text-7xl">
-              {settings.galleryHeroTitle}
-            </h1>
-            <p className="mt-3 max-w-xl text-sm text-ink-foreground/70">
-              {settings.galleryHeroSubtitle}
-            </p>
-          </div>
-        </section>
+        <PageHero
+          kicker="Lookbook"
+          title={settings.galleryHeroTitle}
+          subtitle={settings.galleryHeroSubtitle}
+          overlay={
+            <>
+              {video?.kind === "video" && (
+                <video
+                  src={video.src}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              )}
+              {video?.kind === "iframe" && (
+                <iframe
+                  src={video.src}
+                  title="Gallery film"
+                  allow="autoplay; loop; encrypted-media; picture-in-picture"
+                  allowFullScreen
+                  className="pointer-events-none absolute left-1/2 top-1/2 h-[130%] w-[180%] -translate-x-1/2 -translate-y-1/2"
+                />
+              )}
+            </>
+          }
+        />
 
         <section className="mx-auto max-w-7xl px-4 py-16 md:px-8">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
