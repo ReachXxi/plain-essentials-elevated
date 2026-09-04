@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
+import { PageHero } from "@/components/site/PageHero";
 import { useStore } from "@/lib/store";
 import { embedUrl } from "@/lib/site";
 
