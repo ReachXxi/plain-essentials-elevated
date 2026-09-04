@@ -160,16 +160,47 @@ function AdminPage() {
   const set = <K extends keyof SiteSettings>(k: K, v: SiteSettings[K]) =>
     setSettings((s) => ({ ...s, [k]: v }));
 
+  /**
+   * Save changes = publish everything: settings, every product and every
+   * gallery item are written to the live database in one go, then all open
+   * storefronts are told to refetch.
+   */
   const saveSettings = async () => {
     setBusy(true);
     try {
       await adminSaveSettings({
         data: { password, value: settings as unknown as Record<string, unknown> },
       });
+      for (const p of products) {
+        await adminSaveRow({
+          data: {
+            password,
+            table: "products",
+            action: "upsert",
+            row: p as unknown as Record<string, unknown>,
+          },
+        });
+      }
+      for (const g of gallery) {
+        await adminSaveRow({
+          data: {
+            password,
+            table: "gallery",
+            action: "upsert",
+            row: g as unknown as Record<string, unknown>,
+          },
+        });
+      }
       refresh();
-      toast.success("Saved and live");
+      setLastPublished(new Date().toLocaleTimeString());
+      try {
+        localStorage.setItem("plain.published", String(Date.now()));
+      } catch {
+        /* ignore */
+      }
+      toast.success("Published — everything is live");
     } catch {
-      toast.error("Save failed");
+      toast.error("Publish failed");
     }
     setBusy(false);
   };
