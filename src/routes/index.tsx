@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Star } from "lucide-react";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { HeroSlider } from "@/components/site/HeroSlider";
@@ -40,11 +39,6 @@ const VALUES = [
   { n: "04.", t: "WhatsApp Checkout", d: "Order in seconds, no account needed." },
 ];
 
-const TESTIMONIALS = [
-  { q: "Best quality tee I have ever owned. The weight is unreal.", a: "Alex, Lagos" },
-  { q: "Fit is perfect and delivery took two days. Repeat customer.", a: "Zainab, Abuja" },
-  { q: "The prints do not crack. That alone sold me.", a: "Tobi, Ibadan" },
-];
 
 function Index() {
   const { products } = useStore();
