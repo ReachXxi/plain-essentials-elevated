@@ -228,3 +228,15 @@ export const adminUpload = createServerFn({ method: "POST" })
     const url = await uploadMedia(data.filename, data.dataUrl);
     return { url };
   });
+
+/** Signed direct-to-storage upload (used for video files that are too big to base64). */
+export const adminUploadUrl = createServerFn({ method: "POST" })
+  .inputValidator((input) =>
+    z.object({ password: z.string(), filename: z.string().max(200) }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { checkPassword, createSignedUpload } = await import("./plain.server");
+    checkPassword(data.password);
+    const { path, token, url } = await createSignedUpload(data.filename);
+    return { path, token, url };
+  });
