@@ -243,6 +243,30 @@ function AdminPage() {
     }
   };
 
+  const uploadVideo = async (file: File): Promise<string | null> => {
+    if (!file.type.startsWith("video/")) {
+      toast.error("Choose a video file (MP4, WebM, MOV, OGG)");
+      return null;
+    }
+    if (file.size > 50_000_000) {
+      toast.error("Video must be under 50MB — host bigger files on YouTube and paste the link");
+      return null;
+    }
+    try {
+      const { path, token, url } = await adminUploadUrl({
+        data: { password, filename: file.name },
+      });
+      const { error } = await supabase.storage
+        .from("media")
+        .uploadToSignedUrl(path, token, file, { contentType: file.type });
+      if (error) throw error;
+      return url;
+    } catch {
+      toast.error("Video upload failed");
+      return null;
+    }
+  };
+
   if (!authed) {
     return (
       <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-ink px-4">
