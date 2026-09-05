@@ -34,6 +34,15 @@ export async function syncSheet(kind: string, payload: unknown) {
   }
 }
 
+/** Create a one-time signed upload URL so large files (video) stream straight to storage. */
+export async function createSignedUpload(filename: string) {
+  const safe = filename.replace(/[^\w.-]/g, "_");
+  const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${safe}`;
+  const { data, error } = await supabaseAdmin.storage.from("media").createSignedUploadUrl(path);
+  if (error || !data) throw new Error(error?.message ?? "Could not start upload");
+  return { path, token: data.token, signedUrl: data.signedUrl, url: `/api/public/media/${path}` };
+}
+
 export async function uploadMedia(filename: string, dataUrl: string) {
   const match = dataUrl.match(/^data:([^;]+);base64,(.*)$/);
   if (!match?.[2]) throw new Error("Invalid file data");
