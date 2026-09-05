@@ -1187,6 +1187,66 @@ function AdminPage() {
   );
 }
 
+function VideoField({
+  label,
+  v,
+  on,
+  uploadVideo,
+}: {
+  label: string;
+  v: string;
+  on: (v: string) => void;
+  uploadVideo: (file: File) => Promise<string | null>;
+}) {
+  const [busy, setBusy] = useState(false);
+  const isFile = v.startsWith("/api/public/media/");
+  return (
+    <div className="sm:col-span-2 space-y-2">
+      <Label className="font-accent text-[10px]">{label}</Label>
+      <Input
+        value={v}
+        placeholder="https://youtube.com/... or upload below"
+        onChange={(e) => on(e.target.value)}
+      />
+      <div className="flex flex-wrap items-center gap-3">
+        <input
+          type="file"
+          accept="video/mp4,video/webm,video/quicktime,video/ogg,video/*"
+          disabled={busy}
+          onChange={async (e) => {
+            const f = e.target.files?.[0];
+            e.target.value = "";
+            if (!f) return;
+            setBusy(true);
+            const url = await uploadVideo(f);
+            setBusy(false);
+            if (url) {
+              on(url);
+              toast.success("Video uploaded");
+            }
+          }}
+        />
+        {busy && <span className="font-accent text-[10px] opacity-70">Uploading…</span>}
+        {v && (
+          <button
+            type="button"
+            className="font-accent text-[10px] underline"
+            onClick={() => on("")}
+          >
+            Remove
+          </button>
+        )}
+      </div>
+      <p className="text-[10px] opacity-60">
+        MP4, WebM, MOV or OGG up to 50MB. Bigger files: host on YouTube/Vimeo and paste the link.
+      </p>
+      {isFile && (
+        <video src={v} controls playsInline className="max-h-40 w-full max-w-xs bg-black" />
+      )}
+    </div>
+  );
+}
+
 function Field({
   label,
   v,
