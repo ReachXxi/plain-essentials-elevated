@@ -921,10 +921,11 @@ function AdminPage() {
                     })
                   }
                 />
-                <Field
-                  label="Video URL"
+                <VideoField
+                  label="Preview video (paste a link or upload a file)"
                   v={editing.video_url ?? ""}
                   on={(v) => setEditing({ ...editing, video_url: v })}
+                  uploadVideo={uploadVideo}
                 />
                 <div className="sm:col-span-2">
                   <Label className="font-accent text-[10px]">Description</Label>
