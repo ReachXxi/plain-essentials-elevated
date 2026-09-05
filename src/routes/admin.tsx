@@ -1024,10 +1024,11 @@ function AdminPage() {
 
           <TabsContent value="gallery" className="mt-6 space-y-4">
             <div className="space-y-2 border bg-card p-5">
-              <Field
-                label="Gallery hero video URL"
+              <VideoField
+                label="Gallery hero video (paste a link or upload a file)"
                 v={settings.galleryHeroVideo}
                 on={(v) => set("galleryHeroVideo", v)}
+                uploadVideo={uploadVideo}
               />
               <Field
                 label="Gallery hero title"
