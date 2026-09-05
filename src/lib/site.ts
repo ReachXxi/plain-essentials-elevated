@@ -158,15 +158,36 @@ export function whatsappLink(number: string, message: string) {
   return `https://wa.me/${number.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
 }
 
-export function cartMessage(cart: CartLine[], rate: number, brand: string) {
+/** Make a product image link absolute so WhatsApp can render a preview. */
+export function absoluteUrl(src: string, origin?: string): string {
+  const s = (src || "").trim();
+  if (!s) return "";
+  if (/^https?:\/\//i.test(s)) return s;
+  const base =
+    origin || (typeof window !== "undefined" ? window.location.origin : "");
+  if (!base) return "";
+  return `${base.replace(/\/$/, "")}/${s.replace(/^\//, "")}`;
+}
+
+export function cartMessage(
+  cart: CartLine[],
+  rate: number,
+  brand: string,
+  origin?: string,
+) {
   const lines = cart
-    .map(
-      (l) =>
-        `• ${l.name} — ${l.size} / ${l.color} × ${l.qty} — ${usd(lineSubtotal(l))}`,
-    )
+    .map((l, i) => {
+      const img = absoluteUrl(l.image, origin);
+      return (
+        `${i + 1}. ${l.name} — ${l.size} / ${l.color} × ${l.qty} — ${usd(lineSubtotal(l))}` +
+        (img ? `\n   Photo: ${img}` : "")
+      );
+    })
     .join("\n");
   const total = cartTotalUsd(cart);
-  return `Hello ${brand}, I'd like to place this order:\n\n${lines}\n\nTotal: ${usd(total)} (${ngn(total, rate)})\n\nName:\nPhone:\nDelivery address:`;
+  const first = absoluteUrl(cart[0]?.image ?? "", origin);
+  const preview = first ? `${first}\n\n` : "";
+  return `${preview}Hello ${brand}, I'd like to place this order:\n\n${lines}\n\nTotal: ${usd(total)} (${ngn(total, rate)})\n\nName:\nPhone:\nDelivery address:`;
 }
 
 /** Turn any video link (YouTube, Vimeo, Instagram, TikTok, X, direct file) into an embeddable URL. */
