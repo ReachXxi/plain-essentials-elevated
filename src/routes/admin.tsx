@@ -16,7 +16,9 @@ import {
   adminSaveRow,
   adminSaveSettings,
   adminUpload,
+  adminUploadUrl,
 } from "@/lib/plain.functions";
+import { supabase } from "@/integrations/supabase/client";
 import {
   defaultSettings,
   ngn,
