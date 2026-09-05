@@ -16,7 +16,9 @@ import {
   adminSaveRow,
   adminSaveSettings,
   adminUpload,
+  adminUploadUrl,
 } from "@/lib/plain.functions";
+import { supabase } from "@/integrations/supabase/client";
 import {
   defaultSettings,
   ngn,
@@ -239,6 +241,30 @@ function AdminPage() {
       return url;
     } catch {
       toast.error("Upload failed");
+      return null;
+    }
+  };
+
+  const uploadVideo = async (file: File): Promise<string | null> => {
+    if (!file.type.startsWith("video/")) {
+      toast.error("Choose a video file (MP4, WebM, MOV, OGG)");
+      return null;
+    }
+    if (file.size > 50_000_000) {
+      toast.error("Video must be under 50MB — host bigger files on YouTube and paste the link");
+      return null;
+    }
+    try {
+      const { path, token, url } = await adminUploadUrl({
+        data: { password, filename: file.name },
+      });
+      const { error } = await supabase.storage
+        .from("media")
+        .uploadToSignedUrl(path, token, file, { contentType: file.type });
+      if (error) throw error;
+      return url;
+    } catch {
+      toast.error("Video upload failed");
       return null;
     }
   };
@@ -895,10 +921,11 @@ function AdminPage() {
                     })
                   }
                 />
-                <Field
-                  label="Video URL"
+                <VideoField
+                  label="Preview video (paste a link or upload a file)"
                   v={editing.video_url ?? ""}
                   on={(v) => setEditing({ ...editing, video_url: v })}
+                  uploadVideo={uploadVideo}
                 />
                 <div className="sm:col-span-2">
                   <Label className="font-accent text-[10px]">Description</Label>
@@ -997,10 +1024,11 @@ function AdminPage() {
 
           <TabsContent value="gallery" className="mt-6 space-y-4">
             <div className="space-y-2 border bg-card p-5">
-              <Field
-                label="Gallery hero video URL"
+              <VideoField
+                label="Gallery hero video (paste a link or upload a file)"
                 v={settings.galleryHeroVideo}
                 on={(v) => set("galleryHeroVideo", v)}
+                uploadVideo={uploadVideo}
               />
               <Field
                 label="Gallery hero title"
@@ -1155,6 +1183,66 @@ function AdminPage() {
           </TabsContent>
         </Tabs>
       </div>
+    </div>
+  );
+}
+
+function VideoField({
+  label,
+  v,
+  on,
+  uploadVideo,
+}: {
+  label: string;
+  v: string;
+  on: (v: string) => void;
+  uploadVideo: (file: File) => Promise<string | null>;
+}) {
+  const [busy, setBusy] = useState(false);
+  const isFile = v.startsWith("/api/public/media/");
+  return (
+    <div className="sm:col-span-2 space-y-2">
+      <Label className="font-accent text-[10px]">{label}</Label>
+      <Input
+        value={v}
+        placeholder="https://youtube.com/... or upload below"
+        onChange={(e) => on(e.target.value)}
+      />
+      <div className="flex flex-wrap items-center gap-3">
+        <input
+          type="file"
+          accept="video/mp4,video/webm,video/quicktime,video/ogg,video/*"
+          disabled={busy}
+          onChange={async (e) => {
+            const f = e.target.files?.[0];
+            e.target.value = "";
+            if (!f) return;
+            setBusy(true);
+            const url = await uploadVideo(f);
+            setBusy(false);
+            if (url) {
+              on(url);
+              toast.success("Video uploaded");
+            }
+          }}
+        />
+        {busy && <span className="font-accent text-[10px] opacity-70">Uploading…</span>}
+        {v && (
+          <button
+            type="button"
+            className="font-accent text-[10px] underline"
+            onClick={() => on("")}
+          >
+            Remove
+          </button>
+        )}
+      </div>
+      <p className="text-[10px] opacity-60">
+        MP4, WebM, MOV or OGG up to 50MB. Bigger files: host on YouTube/Vimeo and paste the link.
+      </p>
+      {isFile && (
+        <video src={v} controls playsInline className="max-h-40 w-full max-w-xs bg-black" />
+      )}
     </div>
   );
 }
