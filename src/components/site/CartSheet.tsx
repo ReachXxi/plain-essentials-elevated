@@ -38,7 +38,12 @@ export function CartSheet() {
       toast.error("Could not record the order, opening WhatsApp anyway.");
     }
     const msg =
-      cartMessage(cart, settings.usdToNgn, settings.brand) +
+      cartMessage(
+        cart,
+        settings.usdToNgn,
+        settings.brand,
+        typeof window !== "undefined" ? window.location.origin : undefined,
+      ) +
       (name ? `\nName: ${name}` : "") +
       (phone ? `\nPhone: ${phone}` : "");
     window.open(whatsappLink(settings.whatsapp, msg), "_blank", "noopener");
