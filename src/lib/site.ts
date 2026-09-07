@@ -174,20 +174,17 @@ export function cartMessage(
   rate: number,
   brand: string,
   origin?: string,
+  name?: string,
+  phone?: string,
+  address?: string,
 ) {
-  const lines = cart
-    .map((l, i) => {
-      const img = absoluteUrl(l.image, origin);
-      return (
-        `${i + 1}. ${l.name} — ${l.size} / ${l.color} × ${l.qty} — ${usd(lineSubtotal(l))}` +
-        (img ? `\n   Photo: ${img}` : "")
-      );
-    })
-    .join("\n");
   const total = cartTotalUsd(cart);
   const first = absoluteUrl(cart[0]?.image ?? "", origin);
   const preview = first ? `${first}\n\n` : "";
-  return `${preview}Hello ${brand}, I'd like to place this order:\n\n${lines}\n\nTotal: ${usd(total)} (${ngn(total, rate)})\n\nName:\nPhone:\nDelivery address:`;
+  const items = cart
+    .map((l) => `The ${l.name} (${l.color} / ${l.size}) is my entry piece.`)
+    .join("\n");
+  return `${preview}${brand} Society, I'm pledging my membership.\n\n${items}\n\nTotal: ${usd(total)} (${ngn(total, rate)})\n\nName: ${name?.trim() || "[Insert name]"}\nPhone: ${phone?.trim() || "[Insert phone]"}\nAddress: ${address?.trim() || "[Insert address]"}\n\nLet me in. I'm ready.`;
 }
 
 /** Turn any video link (YouTube, Vimeo, Instagram, TikTok, X, direct file) into an embeddable URL. */
