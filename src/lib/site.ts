@@ -71,8 +71,22 @@ export type SiteSettings = {
   contactPhone: string;
   contactAddress: string;
   contactImage: string;
+  checkoutMessage: string;
+  checkoutItemLine: string;
 };
 
+export const defaultCheckoutItem = "The {name} ({color} / {size}) is my entry piece.";
+export const defaultCheckoutMessage = `{brand} Society, I'm pledging my membership.
+
+{items}
+
+Total: {total}
+
+Name: {name}
+Phone: {phone}
+Address: {address}
+
+Let me in. I'm ready.`;
 
 export const defaultSettings: SiteSettings = {
   brand: "PLAIN",
