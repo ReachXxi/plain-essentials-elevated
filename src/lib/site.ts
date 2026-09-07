@@ -71,8 +71,22 @@ export type SiteSettings = {
   contactPhone: string;
   contactAddress: string;
   contactImage: string;
+  checkoutMessage: string;
+  checkoutItemLine: string;
 };
 
+export const defaultCheckoutItem = "The {name} ({color} / {size}) is my entry piece.";
+export const defaultCheckoutMessage = `{brand} Society, I'm pledging my membership.
+
+{items}
+
+Total: {total}
+
+Name: {name}
+Phone: {phone}
+Address: {address}
+
+Let me in. I'm ready.`;
 
 export const defaultSettings: SiteSettings = {
   brand: "PLAIN",
@@ -116,6 +130,8 @@ export const defaultSettings: SiteSettings = {
   contactPhone: "",
   contactAddress: "",
   contactImage: "",
+  checkoutMessage: defaultCheckoutMessage,
+  checkoutItemLine: defaultCheckoutItem,
 };
 
 export type CartLine = {
@@ -177,15 +193,32 @@ export function cartMessage(
   name?: string,
   phone?: string,
   address?: string,
+  templates?: { item?: string; body?: string },
 ) {
   const total = cartTotalUsd(cart);
   const first = absoluteUrl(cart[0]?.image ?? "", origin);
   const preview = first ? `${first}\n\n` : "";
+  const itemTpl = (templates?.item || "").trim() || defaultCheckoutItem;
+  const bodyTpl = (templates?.body || "").trim() || defaultCheckoutMessage;
   const items = cart
-    .map((l) => `The ${l.name} (${l.color} / ${l.size}) is my entry piece.`)
+    .map((l) =>
+      itemTpl
+        .replaceAll("{name}", l.name)
+        .replaceAll("{color}", l.color)
+        .replaceAll("{size}", l.size)
+        .replaceAll("{qty}", String(l.qty)),
+    )
     .join("\n");
-  return `${preview}${brand} Society, I'm pledging my membership.\n\n${items}\n\nTotal: ${usd(total)} (${ngn(total, rate)})\n\nName: ${name?.trim() || "[Insert name]"}\nPhone: ${phone?.trim() || "[Insert phone]"}\nAddress: ${address?.trim() || "[Insert address]"}\n\nLet me in. I'm ready.`;
+  const body = bodyTpl
+    .replaceAll("{brand}", brand)
+    .replaceAll("{items}", items)
+    .replaceAll("{total}", `${usd(total)} (${ngn(total, rate)})`)
+    .replaceAll("{name}", name?.trim() || "[Insert name]")
+    .replaceAll("{phone}", phone?.trim() || "[Insert phone]")
+    .replaceAll("{address}", address?.trim() || "[Insert address]");
+  return `${preview}${body}`;
 }
+
 
 /** Turn any video link (YouTube, Vimeo, Instagram, TikTok, X, direct file) into an embeddable URL. */
 export function embedUrl(

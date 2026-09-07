@@ -20,6 +20,9 @@ import {
 } from "@/lib/plain.functions";
 import { supabase } from "@/integrations/supabase/client";
 import {
+  cartMessage,
+  defaultCheckoutItem,
+  defaultCheckoutMessage,
   defaultSettings,
   ngn,
   usd,
@@ -440,6 +443,74 @@ function AdminPage() {
                 />
               </div>
             </div>
+
+            <div className="space-y-3 border bg-card p-5">
+              <div className="flex items-center justify-between gap-3">
+                <p className="font-accent text-[10px]">WhatsApp checkout message</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    set("checkoutMessage", defaultCheckoutMessage);
+                    set("checkoutItemLine", defaultCheckoutItem);
+                  }}
+                >
+                  Reset to default
+                </Button>
+              </div>
+              <div>
+                <Label className="font-accent text-[10px]">Line for each item</Label>
+                <Input
+                  value={settings.checkoutItemLine ?? defaultCheckoutItem}
+                  onChange={(e) => set("checkoutItemLine", e.target.value)}
+                />
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Use {"{name}"}, {"{color}"}, {"{size}"}, {"{qty}"}.
+                </p>
+              </div>
+              <div>
+                <Label className="font-accent text-[10px]">Full message</Label>
+                <Textarea
+                  rows={10}
+                  value={settings.checkoutMessage ?? defaultCheckoutMessage}
+                  onChange={(e) => set("checkoutMessage", e.target.value)}
+                />
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Use {"{brand}"}, {"{items}"}, {"{total}"}, {"{name}"}, {"{phone}"},{" "}
+                  {"{address}"}. The first product photo is attached automatically.
+                </p>
+              </div>
+              <div>
+                <p className="font-accent text-[10px]">Preview</p>
+                <pre className="mt-1 whitespace-pre-wrap border bg-muted/40 p-3 text-xs">
+                  {cartMessage(
+                    [
+                      {
+                        productId: "demo",
+                        name: "Pushing P Tee",
+                        image: "",
+                        size: "S",
+                        color: "Black",
+                        qty: 1,
+                        unitUsd: 37.1,
+                        vatPercent: 0,
+                        shippingUsd: 0,
+                        discountPercent: 0,
+                      },
+                    ],
+                    settings.usdToNgn,
+                    settings.brand,
+                    undefined,
+                    "Der",
+                    "09344555",
+                    "",
+                    { item: settings.checkoutItemLine, body: settings.checkoutMessage },
+                  )}
+                </pre>
+              </div>
+            </div>
+
+
 
             <div className="space-y-3 border bg-card p-5">
               <p className="font-accent text-[10px]">Hero slides</p>
