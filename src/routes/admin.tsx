@@ -20,6 +20,9 @@ import {
 } from "@/lib/plain.functions";
 import { supabase } from "@/integrations/supabase/client";
 import {
+  cartMessage,
+  defaultCheckoutItem,
+  defaultCheckoutMessage,
   defaultSettings,
   ngn,
   usd,
