@@ -130,6 +130,8 @@ export const defaultSettings: SiteSettings = {
   contactPhone: "",
   contactAddress: "",
   contactImage: "",
+  checkoutMessage: defaultCheckoutMessage,
+  checkoutItemLine: defaultCheckoutItem,
 };
 
 export type CartLine = {
