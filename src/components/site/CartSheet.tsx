@@ -46,6 +46,7 @@ export function CartSheet() {
       name,
       phone,
       address,
+      { item: settings.checkoutItemLine, body: settings.checkoutMessage },
     );
     window.open(whatsappLink(settings.whatsapp, msg), "_blank", "noopener");
     clearCart();
