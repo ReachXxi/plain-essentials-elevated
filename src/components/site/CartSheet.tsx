@@ -18,6 +18,7 @@ export function CartSheet() {
     useStore();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
   const [sending, setSending] = useState(false);
 
   const checkout = async () => {
