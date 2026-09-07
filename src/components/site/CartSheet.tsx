@@ -120,18 +120,26 @@ export function CartSheet() {
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                placeholder="Your name"
+                value={name}
+                maxLength={120}
+                onChange={(e) => setName(e.target.value)}
+              />
+              <Input
+                placeholder="Phone"
+                value={phone}
+                maxLength={40}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+            </div>
             <Input
-              placeholder="Your name"
-              value={name}
-              maxLength={120}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <Input
-              placeholder="Phone"
-              value={phone}
-              maxLength={40}
-              onChange={(e) => setPhone(e.target.value)}
+              placeholder="Delivery address"
+              value={address}
+              maxLength={500}
+              onChange={(e) => setAddress(e.target.value)}
             />
           </div>
           <Button
