@@ -18,6 +18,7 @@ export function CartSheet() {
     useStore();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
   const [sending, setSending] = useState(false);
 
   const checkout = async () => {
@@ -28,7 +29,7 @@ export function CartSheet() {
         data: {
           customer_name: name.trim().slice(0, 120),
           phone: phone.trim().slice(0, 40),
-          note: "",
+          note: address.trim().slice(0, 500),
           items: cart as unknown as Record<string, unknown>[],
           total_usd: Number(cartTotal.toFixed(2)),
           total_ngn: Math.round(cartTotal * settings.usdToNgn),
@@ -37,15 +38,15 @@ export function CartSheet() {
     } catch {
       toast.error("Could not record the order, opening WhatsApp anyway.");
     }
-    const msg =
-      cartMessage(
-        cart,
-        settings.usdToNgn,
-        settings.brand,
-        typeof window !== "undefined" ? window.location.origin : undefined,
-      ) +
-      (name ? `\nName: ${name}` : "") +
-      (phone ? `\nPhone: ${phone}` : "");
+    const msg = cartMessage(
+      cart,
+      settings.usdToNgn,
+      settings.brand,
+      typeof window !== "undefined" ? window.location.origin : undefined,
+      name,
+      phone,
+      address,
+    );
     window.open(whatsappLink(settings.whatsapp, msg), "_blank", "noopener");
     clearCart();
     setSending(false);
@@ -119,18 +120,26 @@ export function CartSheet() {
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                placeholder="Your name"
+                value={name}
+                maxLength={120}
+                onChange={(e) => setName(e.target.value)}
+              />
+              <Input
+                placeholder="Phone"
+                value={phone}
+                maxLength={40}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+            </div>
             <Input
-              placeholder="Your name"
-              value={name}
-              maxLength={120}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <Input
-              placeholder="Phone"
-              value={phone}
-              maxLength={40}
-              onChange={(e) => setPhone(e.target.value)}
+              placeholder="Delivery address"
+              value={address}
+              maxLength={500}
+              onChange={(e) => setAddress(e.target.value)}
             />
           </div>
           <Button
