@@ -30,6 +30,7 @@ export const Route = createFileRoute("/collection")({
 
 function CollectionPage() {
   const { settings, products } = useStore();
+  const picks = products.filter((p) => p.in_collection);
 
   return (
     <div className="min-h-screen bg-background">
