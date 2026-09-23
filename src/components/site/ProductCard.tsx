@@ -57,7 +57,12 @@ export function ProductCard({
               className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-700 group-hover:opacity-100"
             />
           ) : null}
-          {product.badge && (
+          {preorder && (
+            <span className="absolute left-3 top-3 bg-accent px-2 py-1 font-accent text-[9px] tracking-widest text-accent-foreground">
+              PRE-ORDER
+            </span>
+          )}
+          {product.badge && !preorder && (
             <span className="absolute left-3 top-3 bg-ink px-2 py-1 font-accent text-[9px] text-ink-foreground">
               {product.badge}
             </span>
