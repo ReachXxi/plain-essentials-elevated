@@ -15,6 +15,7 @@ export type Product = {
   badge: string | null;
   active: boolean;
   sort_order: number;
+  in_collection?: boolean;
 };
 
 export type GalleryItem = {
@@ -73,7 +74,21 @@ export type SiteSettings = {
   contactImage: string;
   checkoutMessage: string;
   checkoutItemLine: string;
+  bankName: string;
+  bankAccount: string;
+  bankAccountName: string;
+  preorderMinutes: number;
+  preorderMsgPending: string;
+  preorderMsgPaid: string;
+  preorderMsgDelivered: string;
 };
+
+export const defaultPreorderMsgPending =
+  "Hi {name}, thanks for checking out {brand}! Your pre-order for {items} has been accepted and we are verifying your payment. We'll get back to you with delivery details once validated.";
+export const defaultPreorderMsgPaid =
+  "Hi {name}, your payment of {total} for {items} has been confirmed! Your pre-order is queued for dispatch and we'll keep you updated.";
+export const defaultPreorderMsgDelivered =
+  "Hi {name}, your {brand} pre-order for {items} has been delivered! We hope you love your piece. Welcome to the {brand} Society.";
 
 export const defaultCheckoutItem = "The {name} ({color} / {size}) is my entry piece.";
 export const defaultCheckoutMessage = `{brand} Society, I'm pledging my membership.
