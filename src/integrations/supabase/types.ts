@@ -97,9 +97,11 @@ export type Database = {
       }
       orders: {
         Row: {
+          address: string
           created_at: string
           customer_name: string
           id: string
+          is_preorder: boolean
           items: Json
           note: string
           phone: string
@@ -111,9 +113,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          address?: string
           created_at?: string
           customer_name?: string
           id?: string
+          is_preorder?: boolean
           items?: Json
           note?: string
           phone?: string
@@ -125,9 +129,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          address?: string
           created_at?: string
           customer_name?: string
           id?: string
+          is_preorder?: boolean
           items?: Json
           note?: string
           phone?: string
@@ -151,6 +157,7 @@ export type Database = {
           discount_percent: number
           id: string
           images: string[]
+          in_collection: boolean
           name: string
           price_usd: number
           shipping_usd: number
@@ -171,6 +178,7 @@ export type Database = {
           discount_percent?: number
           id?: string
           images?: string[]
+          in_collection?: boolean
           name: string
           price_usd?: number
           shipping_usd?: number
@@ -191,6 +199,7 @@ export type Database = {
           discount_percent?: number
           id?: string
           images?: string[]
+          in_collection?: boolean
           name?: string
           price_usd?: number
           shipping_usd?: number

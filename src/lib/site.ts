@@ -15,6 +15,7 @@ export type Product = {
   badge: string | null;
   active: boolean;
   sort_order: number;
+  in_collection?: boolean;
 };
 
 export type GalleryItem = {
@@ -73,7 +74,21 @@ export type SiteSettings = {
   contactImage: string;
   checkoutMessage: string;
   checkoutItemLine: string;
+  bankName: string;
+  bankAccount: string;
+  bankAccountName: string;
+  preorderMinutes: number;
+  preorderMsgPending: string;
+  preorderMsgPaid: string;
+  preorderMsgDelivered: string;
 };
+
+export const defaultPreorderMsgPending =
+  "Hi {name}, thanks for checking out {brand}! Your pre-order for {items} has been accepted and we are verifying your payment. We'll get back to you with delivery details once validated.";
+export const defaultPreorderMsgPaid =
+  "Hi {name}, your payment of {total} for {items} has been confirmed! Your pre-order is queued for dispatch and we'll keep you updated.";
+export const defaultPreorderMsgDelivered =
+  "Hi {name}, your {brand} pre-order for {items} has been delivered! We hope you love your piece. Welcome to the {brand} Society.";
 
 export const defaultCheckoutItem = "The {name} ({color} / {size}) is my entry piece.";
 export const defaultCheckoutMessage = `{brand} Society, I'm pledging my membership.
@@ -132,7 +147,27 @@ export const defaultSettings: SiteSettings = {
   contactImage: "",
   checkoutMessage: defaultCheckoutMessage,
   checkoutItemLine: defaultCheckoutItem,
+  bankName: "OPay",
+  bankAccount: "9074473570",
+  bankAccountName: "KOLADE OLADIMEJI",
+  preorderMinutes: 30,
+  preorderMsgPending: defaultPreorderMsgPending,
+  preorderMsgPaid: defaultPreorderMsgPaid,
+  preorderMsgDelivered: defaultPreorderMsgDelivered,
 };
+
+/** Fill {name} {brand} {items} {total} {ref} in a pre-order WhatsApp template. */
+export function fillTemplate(
+  tpl: string,
+  vars: { name?: string; brand?: string; items?: string; total?: string; ref?: string },
+) {
+  return tpl
+    .replaceAll("{name}", vars.name?.trim() || "there")
+    .replaceAll("{brand}", vars.brand || "PLAIN")
+    .replaceAll("{items}", vars.items || "your order")
+    .replaceAll("{total}", vars.total || "")
+    .replaceAll("{ref}", vars.ref || "");
+}
 
 export type CartLine = {
   productId: string;

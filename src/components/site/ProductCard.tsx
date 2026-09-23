@@ -4,13 +4,21 @@ import { Heart, Minus, Play, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useStore } from "@/lib/store";
+import { PreorderDialog } from "@/components/site/PreorderDialog";
 import { embedUrl, ngn, unitAfterDiscount, usd, type Product } from "@/lib/site";
 import { trackEvent } from "@/lib/plain.functions";
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({
+  product,
+  preorder = false,
+}: {
+  product: Product;
+  preorder?: boolean;
+}) {
   const { wishlist, toggleWishlist, addToCart, settings } = useStore();
   const [qty, setQty] = useState(1);
   const [live, setLive] = useState(false);
+  const [preorderOpen, setPreorderOpen] = useState(false);
   const liked = wishlist.includes(product.id);
   const price = unitAfterDiscount(product);
   const slug = product.slug ?? product.id;
@@ -50,7 +58,12 @@ export function ProductCard({ product }: { product: Product }) {
               className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-700 group-hover:opacity-100"
             />
           ) : null}
-          {product.badge && (
+          {preorder && (
+            <span className="absolute left-3 top-3 bg-accent px-2 py-1 font-accent text-[9px] tracking-widest text-accent-foreground">
+              PRE-ORDER
+            </span>
+          )}
+          {product.badge && !preorder && (
             <span className="absolute left-3 top-3 bg-ink px-2 py-1 font-accent text-[9px] text-ink-foreground">
               {product.badge}
             </span>
@@ -124,7 +137,22 @@ export function ProductCard({ product }: { product: Product }) {
             Add to Cart
           </Button>
         </div>
+
+        {preorder && (
+          <Button
+            variant="outline"
+            className="mt-2 h-9 w-full border-accent font-accent text-[10px] text-accent transition-transform active:scale-95"
+            onClick={() => setPreorderOpen(true)}
+          >
+            Pre-Order Now
+          </Button>
+        )}
       </div>
+
+      {preorder && (
+        <PreorderDialog product={product} open={preorderOpen} onOpenChange={setPreorderOpen} />
+      )}
+
 
       <Dialog open={live} onOpenChange={setLive}>
         <DialogContent className="max-w-3xl p-0">
