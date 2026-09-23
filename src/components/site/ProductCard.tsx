@@ -4,6 +4,7 @@ import { Heart, Minus, Play, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useStore } from "@/lib/store";
+import { PreorderDialog } from "@/components/site/PreorderDialog";
 import { embedUrl, ngn, unitAfterDiscount, usd, type Product } from "@/lib/site";
 import { trackEvent } from "@/lib/plain.functions";
 
