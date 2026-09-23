@@ -7,10 +7,17 @@ import { useStore } from "@/lib/store";
 import { embedUrl, ngn, unitAfterDiscount, usd, type Product } from "@/lib/site";
 import { trackEvent } from "@/lib/plain.functions";
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({
+  product,
+  preorder = false,
+}: {
+  product: Product;
+  preorder?: boolean;
+}) {
   const { wishlist, toggleWishlist, addToCart, settings } = useStore();
   const [qty, setQty] = useState(1);
   const [live, setLive] = useState(false);
+  const [preorderOpen, setPreorderOpen] = useState(false);
   const liked = wishlist.includes(product.id);
   const price = unitAfterDiscount(product);
   const slug = product.slug ?? product.id;
