@@ -136,7 +136,22 @@ export function ProductCard({
             Add to Cart
           </Button>
         </div>
+
+        {preorder && (
+          <Button
+            variant="outline"
+            className="mt-2 h-9 w-full border-accent font-accent text-[10px] text-accent transition-transform active:scale-95"
+            onClick={() => setPreorderOpen(true)}
+          >
+            Pre-Order Now
+          </Button>
+        )}
       </div>
+
+      {preorder && (
+        <PreorderDialog product={product} open={preorderOpen} onOpenChange={setPreorderOpen} />
+      )}
+
 
       <Dialog open={live} onOpenChange={setLive}>
         <DialogContent className="max-w-3xl p-0">
