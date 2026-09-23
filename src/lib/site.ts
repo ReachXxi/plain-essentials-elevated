@@ -147,7 +147,27 @@ export const defaultSettings: SiteSettings = {
   contactImage: "",
   checkoutMessage: defaultCheckoutMessage,
   checkoutItemLine: defaultCheckoutItem,
+  bankName: "OPay",
+  bankAccount: "9074473570",
+  bankAccountName: "KOLADE OLADIMEJI",
+  preorderMinutes: 30,
+  preorderMsgPending: defaultPreorderMsgPending,
+  preorderMsgPaid: defaultPreorderMsgPaid,
+  preorderMsgDelivered: defaultPreorderMsgDelivered,
 };
+
+/** Fill {name} {brand} {items} {total} {ref} in a pre-order WhatsApp template. */
+export function fillTemplate(
+  tpl: string,
+  vars: { name?: string; brand?: string; items?: string; total?: string; ref?: string },
+) {
+  return tpl
+    .replaceAll("{name}", vars.name?.trim() || "there")
+    .replaceAll("{brand}", vars.brand || "PLAIN")
+    .replaceAll("{items}", vars.items || "your order")
+    .replaceAll("{total}", vars.total || "")
+    .replaceAll("{ref}", vars.ref || "");
+}
 
 export type CartLine = {
   productId: string;
