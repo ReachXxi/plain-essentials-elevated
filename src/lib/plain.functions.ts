@@ -240,3 +240,52 @@ export const adminUploadUrl = createServerFn({ method: "POST" })
     const { path, token, url } = await createSignedUpload(data.filename);
     return { path, token, url };
   });
+
+/** Public: signed upload slot for a customer's pre-order payment receipt. */
+export const preorderUploadUrl = createServerFn({ method: "POST" })
+  .inputValidator((input) => z.object({ filename: z.string().min(1).max(200) }).parse(input))
+  .handler(async ({ data }) => {
+    const { createSignedUpload } = await import("./plain.server");
+    const { path, token, url } = await createSignedUpload(`receipt-${data.filename}`);
+    return { path, token, url };
+  });
+
+/** Public: record a pre-order with the uploaded transfer receipt. */
+export const submitPreorder = createServerFn({ method: "POST" })
+  .inputValidator((input) =>
+    z
+      .object({
+        customer_name: z.string().trim().min(1).max(120),
+        phone: z.string().trim().min(6).max(40),
+        address: z.string().trim().min(3).max(500),
+        note: z.string().trim().max(1000).default(""),
+        items: z.array(z.record(z.string(), z.unknown())).min(1).max(50),
+        total_usd: z.number().nonnegative(),
+        total_ngn: z.number().nonnegative(),
+        receipt_url: z.string().max(500).default(""),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { adminDb, syncSheet } = await import("./plain.server");
+    const row = {
+      customer_name: data.customer_name,
+      phone: data.phone,
+      address: data.address,
+      note: data.note,
+      items: data.items,
+      total_usd: data.total_usd,
+      total_ngn: data.total_ngn,
+      receipt_url: data.receipt_url || null,
+      is_preorder: true,
+      status: "pending_verification",
+    };
+    const { data: saved, error } = await adminDb()
+      .from("orders")
+      .insert(row as never)
+      .select("id, reference")
+      .single();
+    if (error) throw new Error(error.message);
+    await syncSheet("preorder", saved);
+    return { id: saved.id as string, reference: saved.reference as string };
+  });
