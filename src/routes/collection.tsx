@@ -44,6 +44,28 @@ function CollectionPage() {
 
         <CollectionSection full />
 
+        {picks.length > 0 && (
+          <section className="py-20">
+            <div className="mx-auto max-w-7xl px-4 md:px-8">
+              <p className="font-accent text-[10px] tracking-widest text-accent">
+                Available for pre-order
+              </p>
+              <h2 className="mt-2 font-display text-4xl md:text-5xl">Collection pieces</h2>
+              <p className="mt-3 max-w-xl text-sm text-muted-foreground">
+                Reserve your piece with a bank transfer. Every pre-order is confirmed on WhatsApp
+                once we verify your payment.
+              </p>
+              <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {picks.map((p, i) => (
+                  <Reveal key={p.id} delay={i * 60}>
+                    <ProductCard product={p} preorder />
+                  </Reveal>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
         <section className="bg-secondary/40 py-20">
           <div className="mx-auto max-w-7xl px-4 md:px-8">
             <h2 className="font-display text-4xl md:text-5xl">Every piece</h2>
