@@ -61,6 +61,8 @@ type OrderRow = {
   status: string;
   receipt_url: string | null;
   created_at: string;
+  address?: string;
+  is_preorder?: boolean;
 };
 
 type EventRow = { id: number; kind: string; label: string; created_at: string };
@@ -92,6 +94,7 @@ const emptyProduct = (): Product => ({
   badge: "",
   active: true,
   sort_order: 0,
+  in_collection: false,
 });
 
 function toCsv(rows: Record<string, unknown>[]) {
