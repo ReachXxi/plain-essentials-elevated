@@ -24,6 +24,7 @@ import {
   defaultCheckoutItem,
   defaultCheckoutMessage,
   defaultSettings,
+  fillTemplate,
   ngn,
   usd,
   whatsappLink,
@@ -96,6 +97,18 @@ const emptyProduct = (): Product => ({
   sort_order: 0,
   in_collection: false,
 });
+
+/** Readable one-line summary of the items stored on an order. */
+function itemsText(items: unknown): string {
+  if (!Array.isArray(items)) return "";
+  return items
+    .map((raw) => {
+      const i = raw as Record<string, unknown>;
+      const bits = [i["color"], i["size"]].filter(Boolean).join(" / ");
+      return `${String(i["name"] ?? "Item")}${bits ? ` (${bits})` : ""} ×${Number(i["qty"] ?? 1)}`;
+    })
+    .join(", ");
+}
 
 function toCsv(rows: Record<string, unknown>[]) {
   if (rows.length === 0) return "";
@@ -355,6 +368,7 @@ function AdminPage() {
               ["collection", "Collection"],
               ["newsletter", "Newsletter"],
               ["orders", "Orders"],
+              ["preorders", "Pre-orders"],
             ].map(([v, l]) => (
               <TabsTrigger
                 key={v}
@@ -1001,6 +1015,15 @@ function AdminPage() {
                   on={(v) => setEditing({ ...editing, video_url: v })}
                   uploadVideo={uploadVideo}
                 />
+                <div className="flex items-center gap-3 sm:col-span-2 border bg-background p-3">
+                  <Switch
+                    checked={!!editing.in_collection}
+                    onCheckedChange={(v) => setEditing({ ...editing, in_collection: v })}
+                  />
+                  <Label className="font-accent text-[10px]">
+                    Add to Collection (shows on the collection page with a PRE-ORDER tag)
+                  </Label>
+                </div>
                 <div className="sm:col-span-2">
                   <Label className="font-accent text-[10px]">Description</Label>
                   <Textarea
@@ -1076,6 +1099,15 @@ function AdminPage() {
                     <p className="font-accent text-[10px] text-muted-foreground">
                       {usd(p.price_usd)} · {ngn(p.price_usd, settings.usdToNgn)}
                     </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={!!p.in_collection}
+                      onCheckedChange={(v) =>
+                        void saveRow("products", { id: p.id, in_collection: v })
+                      }
+                    />
+                    <Label className="font-accent text-[10px]">In collection</Label>
                   </div>
                   <Button
                     variant="outline"
@@ -1210,7 +1242,7 @@ function AdminPage() {
               <Label className="font-accent text-[10px]">Require receipt upload before approval</Label>
             </div>
             <div className="divide-y border bg-card">
-              {orders.map((o) => (
+              {orders.filter((o) => !o.is_preorder).map((o) => (
                 <div key={o.id} className="flex flex-wrap items-center gap-3 p-4">
                   <div className="flex-1">
                     <p className="font-accent text-[10px] text-muted-foreground">{o.reference}</p>
@@ -1252,6 +1284,138 @@ function AdminPage() {
               ))}
               {orders.length === 0 && (
                 <p className="p-6 text-center text-sm text-muted-foreground">No orders yet.</p>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="preorders" className="mt-6 space-y-4">
+            <div className="grid gap-3 border bg-card p-5 sm:grid-cols-3">
+              <Field label="Bank" v={settings.bankName} on={(v) => set("bankName", v)} />
+              <Field
+                label="Account number"
+                v={settings.bankAccount}
+                on={(v) => set("bankAccount", v)}
+              />
+              <Field
+                label="Account name"
+                v={settings.bankAccountName}
+                on={(v) => set("bankAccountName", v)}
+              />
+              <NumField
+                label="Payment window (minutes)"
+                v={settings.preorderMinutes}
+                on={(v) => set("preorderMinutes", v)}
+              />
+            </div>
+            <div className="space-y-3 border bg-card p-5">
+              <p className="font-accent text-[10px] text-muted-foreground">
+                WhatsApp messages · placeholders {"{name}"} {"{brand}"} {"{items}"} {"{total}"}{" "}
+                {"{ref}"}
+              </p>
+              <Label className="font-accent text-[10px]">Payment under review</Label>
+              <Textarea
+                rows={3}
+                value={settings.preorderMsgPending}
+                onChange={(e) => set("preorderMsgPending", e.target.value)}
+              />
+              <Label className="font-accent text-[10px]">Payment received</Label>
+              <Textarea
+                rows={3}
+                value={settings.preorderMsgPaid}
+                onChange={(e) => set("preorderMsgPaid", e.target.value)}
+              />
+              <Label className="font-accent text-[10px]">Order delivered</Label>
+              <Textarea
+                rows={3}
+                value={settings.preorderMsgDelivered}
+                onChange={(e) => set("preorderMsgDelivered", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-3">
+              {orders
+                .filter((o) => o.is_preorder)
+                .map((o) => {
+                  const items = itemsText(o.items);
+                  const vars = {
+                    name: o.customer_name,
+                    brand: settings.brand,
+                    items,
+                    total: `${usd(Number(o.total_usd))} (${ngn(Number(o.total_usd), settings.usdToNgn)})`,
+                    ref: o.reference,
+                  };
+                  const send = (tpl: string) =>
+                    window.open(whatsappLink(o.phone, fillTemplate(tpl, vars)), "_blank");
+                  return (
+                    <div key={o.id} className="space-y-3 border bg-card p-4">
+                      <div className="flex flex-wrap items-start gap-4">
+                        <div className="min-w-[220px] flex-1">
+                          <p className="font-accent text-[10px] text-accent">{o.reference}</p>
+                          <p className="text-sm font-medium">{o.customer_name || "Guest"}</p>
+                          <p className="font-accent text-[10px] text-muted-foreground">
+                            {o.phone} · {new Date(o.created_at).toLocaleString()}
+                          </p>
+                          <p className="mt-1 text-xs text-muted-foreground">{o.address}</p>
+                          <p className="mt-1 text-xs">{items}</p>
+                          <p className="mt-1 font-accent text-[11px]">
+                            {usd(Number(o.total_usd))} · {ngn(Number(o.total_usd), settings.usdToNgn)}
+                          </p>
+                        </div>
+                        {o.receipt_url && (
+                          <a href={o.receipt_url} target="_blank" rel="noreferrer">
+                            <img
+                              src={o.receipt_url}
+                              alt="Receipt"
+                              className="h-24 w-20 border object-cover"
+                            />
+                          </a>
+                        )}
+                        <div>
+                          <Label className="font-accent text-[10px]">Status</Label>
+                          <select
+                            className="h-10 w-44 border bg-background px-2 text-xs"
+                            value={o.status}
+                            onChange={(e) =>
+                              void saveRow("orders", { id: o.id, status: e.target.value })
+                            }
+                          >
+                            <option value="pending_verification">Pending verification</option>
+                            <option value="payment_received">Payment received</option>
+                            <option value="order_delivered">Order delivered</option>
+                            <option value="declined">Declined</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          variant="outline"
+                          className="font-accent text-[10px]"
+                          onClick={() => send(settings.preorderMsgPending)}
+                        >
+                          WhatsApp · under review
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="font-accent text-[10px]"
+                          onClick={() => send(settings.preorderMsgPaid)}
+                        >
+                          WhatsApp · payment received
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="font-accent text-[10px]"
+                          onClick={() => send(settings.preorderMsgDelivered)}
+                        >
+                          WhatsApp · delivered
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              {orders.filter((o) => o.is_preorder).length === 0 && (
+                <p className="border bg-card p-6 text-center text-sm text-muted-foreground">
+                  No pre-orders yet.
+                </p>
               )}
             </div>
           </TabsContent>
