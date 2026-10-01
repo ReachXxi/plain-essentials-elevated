@@ -1002,6 +1002,15 @@ function AdminPage() {
                   on={(v) => setEditing({ ...editing, video_url: v })}
                   uploadVideo={uploadVideo}
                 />
+                <div className="flex items-center gap-3 sm:col-span-2 border bg-background p-3">
+                  <Switch
+                    checked={!!editing.in_collection}
+                    onCheckedChange={(v) => setEditing({ ...editing, in_collection: v })}
+                  />
+                  <Label className="font-accent text-[10px]">
+                    Add to Collection (shows on the collection page with a PRE-ORDER tag)
+                  </Label>
+                </div>
                 <div className="sm:col-span-2">
                   <Label className="font-accent text-[10px]">Description</Label>
                   <Textarea
