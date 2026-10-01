@@ -1078,6 +1078,15 @@ function AdminPage() {
                       {usd(p.price_usd)} · {ngn(p.price_usd, settings.usdToNgn)}
                     </p>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={!!p.in_collection}
+                      onCheckedChange={(v) =>
+                        void saveRow("products", { id: p.id, in_collection: v })
+                      }
+                    />
+                    <Label className="font-accent text-[10px]">In collection</Label>
+                  </div>
                   <Button
                     variant="outline"
                     className="font-accent text-[10px]"
