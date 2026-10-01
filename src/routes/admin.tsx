@@ -1274,6 +1274,138 @@ function AdminPage() {
               )}
             </div>
           </TabsContent>
+
+          <TabsContent value="preorders" className="mt-6 space-y-4">
+            <div className="grid gap-3 border bg-card p-5 sm:grid-cols-3">
+              <Field label="Bank" v={settings.bankName} on={(v) => set("bankName", v)} />
+              <Field
+                label="Account number"
+                v={settings.bankAccount}
+                on={(v) => set("bankAccount", v)}
+              />
+              <Field
+                label="Account name"
+                v={settings.bankAccountName}
+                on={(v) => set("bankAccountName", v)}
+              />
+              <NumField
+                label="Payment window (minutes)"
+                v={settings.preorderMinutes}
+                on={(v) => set("preorderMinutes", v)}
+              />
+            </div>
+            <div className="space-y-3 border bg-card p-5">
+              <p className="font-accent text-[10px] text-muted-foreground">
+                WhatsApp messages · placeholders {"{name}"} {"{brand}"} {"{items}"} {"{total}"}{" "}
+                {"{ref}"}
+              </p>
+              <Label className="font-accent text-[10px]">Payment under review</Label>
+              <Textarea
+                rows={3}
+                value={settings.preorderMsgPending}
+                onChange={(e) => set("preorderMsgPending", e.target.value)}
+              />
+              <Label className="font-accent text-[10px]">Payment received</Label>
+              <Textarea
+                rows={3}
+                value={settings.preorderMsgPaid}
+                onChange={(e) => set("preorderMsgPaid", e.target.value)}
+              />
+              <Label className="font-accent text-[10px]">Order delivered</Label>
+              <Textarea
+                rows={3}
+                value={settings.preorderMsgDelivered}
+                onChange={(e) => set("preorderMsgDelivered", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-3">
+              {orders
+                .filter((o) => o.is_preorder)
+                .map((o) => {
+                  const items = itemsText(o.items);
+                  const vars = {
+                    name: o.customer_name,
+                    brand: settings.brand,
+                    items,
+                    total: `${usd(Number(o.total_usd))} (${ngn(Number(o.total_usd), settings.usdToNgn)})`,
+                    ref: o.reference,
+                  };
+                  const send = (tpl: string) =>
+                    window.open(whatsappLink(o.phone, fillTemplate(tpl, vars)), "_blank");
+                  return (
+                    <div key={o.id} className="space-y-3 border bg-card p-4">
+                      <div className="flex flex-wrap items-start gap-4">
+                        <div className="min-w-[220px] flex-1">
+                          <p className="font-accent text-[10px] text-accent">{o.reference}</p>
+                          <p className="text-sm font-medium">{o.customer_name || "Guest"}</p>
+                          <p className="font-accent text-[10px] text-muted-foreground">
+                            {o.phone} · {new Date(o.created_at).toLocaleString()}
+                          </p>
+                          <p className="mt-1 text-xs text-muted-foreground">{o.address}</p>
+                          <p className="mt-1 text-xs">{items}</p>
+                          <p className="mt-1 font-accent text-[11px]">
+                            {usd(Number(o.total_usd))} · {ngn(Number(o.total_usd), settings.usdToNgn)}
+                          </p>
+                        </div>
+                        {o.receipt_url && (
+                          <a href={o.receipt_url} target="_blank" rel="noreferrer">
+                            <img
+                              src={o.receipt_url}
+                              alt="Receipt"
+                              className="h-24 w-20 border object-cover"
+                            />
+                          </a>
+                        )}
+                        <div>
+                          <Label className="font-accent text-[10px]">Status</Label>
+                          <select
+                            className="h-10 w-44 border bg-background px-2 text-xs"
+                            value={o.status}
+                            onChange={(e) =>
+                              void saveRow("orders", { id: o.id, status: e.target.value })
+                            }
+                          >
+                            <option value="pending_verification">Pending verification</option>
+                            <option value="payment_received">Payment received</option>
+                            <option value="order_delivered">Order delivered</option>
+                            <option value="declined">Declined</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          variant="outline"
+                          className="font-accent text-[10px]"
+                          onClick={() => send(settings.preorderMsgPending)}
+                        >
+                          WhatsApp · under review
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="font-accent text-[10px]"
+                          onClick={() => send(settings.preorderMsgPaid)}
+                        >
+                          WhatsApp · payment received
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="font-accent text-[10px]"
+                          onClick={() => send(settings.preorderMsgDelivered)}
+                        >
+                          WhatsApp · delivered
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              {orders.filter((o) => o.is_preorder).length === 0 && (
+                <p className="border bg-card p-6 text-center text-sm text-muted-foreground">
+                  No pre-orders yet.
+                </p>
+              )}
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
     </div>
