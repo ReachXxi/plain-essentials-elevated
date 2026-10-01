@@ -355,6 +355,7 @@ function AdminPage() {
               ["collection", "Collection"],
               ["newsletter", "Newsletter"],
               ["orders", "Orders"],
+              ["preorders", "Pre-orders"],
             ].map(([v, l]) => (
               <TabsTrigger
                 key={v}
