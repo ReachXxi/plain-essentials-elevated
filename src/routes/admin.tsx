@@ -98,6 +98,18 @@ const emptyProduct = (): Product => ({
   in_collection: false,
 });
 
+/** Readable one-line summary of the items stored on an order. */
+function itemsText(items: unknown): string {
+  if (!Array.isArray(items)) return "";
+  return items
+    .map((raw) => {
+      const i = raw as Record<string, unknown>;
+      const bits = [i["color"], i["size"]].filter(Boolean).join(" / ");
+      return `${String(i["name"] ?? "Item")}${bits ? ` (${bits})` : ""} ×${Number(i["qty"] ?? 1)}`;
+    })
+    .join(", ");
+}
+
 function toCsv(rows: Record<string, unknown>[]) {
   if (rows.length === 0) return "";
   const keys = Object.keys(rows[0]!);
