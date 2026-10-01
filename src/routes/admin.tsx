@@ -24,6 +24,7 @@ import {
   defaultCheckoutItem,
   defaultCheckoutMessage,
   defaultSettings,
+  fillTemplate,
   ngn,
   usd,
   whatsappLink,
