@@ -263,6 +263,7 @@ export const submitPreorder = createServerFn({ method: "POST" })
         total_usd: z.number().nonnegative(),
         total_ngn: z.number().nonnegative(),
         receipt_url: z.string().max(500).default(""),
+        is_preorder: z.boolean().default(true),
       })
       .parse(input),
   )
@@ -277,7 +278,7 @@ export const submitPreorder = createServerFn({ method: "POST" })
       total_usd: data.total_usd,
       total_ngn: data.total_ngn,
       receipt_url: data.receipt_url || null,
-      is_preorder: true,
+      is_preorder: data.is_preorder,
       status: "pending_verification",
     };
     const { data: saved, error } = await adminDb()
@@ -286,6 +287,6 @@ export const submitPreorder = createServerFn({ method: "POST" })
       .select("id, reference")
       .single();
     if (error) throw new Error(error.message);
-    await syncSheet("preorder", saved);
+    await syncSheet(data.is_preorder ? "preorder" : "order", saved);
     return { id: saved.id as string, reference: saved.reference as string };
   });
