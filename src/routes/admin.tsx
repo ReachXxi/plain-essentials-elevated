@@ -1229,7 +1229,7 @@ function AdminPage() {
               <Label className="font-accent text-[10px]">Require receipt upload before approval</Label>
             </div>
             <div className="divide-y border bg-card">
-              {orders.map((o) => (
+              {orders.filter((o) => !o.is_preorder).map((o) => (
                 <div key={o.id} className="flex flex-wrap items-center gap-3 p-4">
                   <div className="flex-1">
                     <p className="font-accent text-[10px] text-muted-foreground">{o.reference}</p>
