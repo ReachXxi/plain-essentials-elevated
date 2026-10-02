@@ -1242,15 +1242,36 @@ function AdminPage() {
               <Label className="font-accent text-[10px]">Require receipt upload before approval</Label>
             </div>
             <div className="divide-y border bg-card">
-              {orders.filter((o) => !o.is_preorder).map((o) => (
-                <div key={o.id} className="flex flex-wrap items-center gap-3 p-4">
-                  <div className="flex-1">
+              {orders.filter((o) => !o.is_preorder).map((o) => {
+                const vars = {
+                  name: o.customer_name,
+                  brand: settings.brand,
+                  items: itemsText(o.items),
+                  total: `${usd(Number(o.total_usd))} (${ngn(Number(o.total_usd), settings.usdToNgn)})`,
+                  ref: o.reference,
+                };
+                const send = (tpl: string) =>
+                  window.open(
+                    whatsappLink(o.phone, fillTemplate(tpl.replaceAll("pre-order", "order"), vars)),
+                    "_blank",
+                  );
+                return (
+                <div key={o.id} className="space-y-3 p-4">
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="min-w-[220px] flex-1">
                     <p className="font-accent text-[10px] text-muted-foreground">{o.reference}</p>
                     <p className="text-sm font-medium">{o.customer_name || "Guest"}</p>
                     <p className="font-accent text-[10px] text-muted-foreground">
                       {o.phone} · {usd(Number(o.total_usd))} · {new Date(o.created_at).toLocaleString()}
                     </p>
+                    {o.address && <p className="mt-1 text-xs text-muted-foreground">{o.address}</p>}
+                    <p className="mt-1 text-xs">{vars.items}</p>
                   </div>
+                  {o.receipt_url && (
+                    <a href={o.receipt_url} target="_blank" rel="noreferrer">
+                      <img src={o.receipt_url} alt="Receipt" className="h-20 w-16 border object-cover" />
+                    </a>
+                  )}
                   <span className="font-accent text-[10px] uppercase">{o.status}</span>
                   <label className="cursor-pointer border px-3 py-2 font-accent text-[10px]">
                     Receipt
@@ -1269,9 +1290,16 @@ function AdminPage() {
                   <Button
                     className="font-accent text-[10px]"
                     disabled={settings.requireReceipt && !o.receipt_url}
-                    onClick={() => void saveRow("orders", { id: o.id, status: "approved" })}
+                    onClick={() => void saveRow("orders", { id: o.id, status: "payment_received" })}
                   >
                     Approve
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="font-accent text-[10px]"
+                    onClick={() => void saveRow("orders", { id: o.id, status: "order_delivered" })}
+                  >
+                    Delivered
                   </Button>
                   <Button
                     variant="outline"
@@ -1281,7 +1309,22 @@ function AdminPage() {
                     Decline
                   </Button>
                 </div>
-              ))}
+                {o.phone && (
+                  <div className="flex flex-wrap gap-2">
+                    <Button variant="outline" className="font-accent text-[10px]" onClick={() => send(settings.preorderMsgPending)}>
+                      WhatsApp · under review
+                    </Button>
+                    <Button variant="outline" className="font-accent text-[10px]" onClick={() => send(settings.preorderMsgPaid)}>
+                      WhatsApp · payment received
+                    </Button>
+                    <Button variant="outline" className="font-accent text-[10px]" onClick={() => send(settings.preorderMsgDelivered)}>
+                      WhatsApp · delivered
+                    </Button>
+                  </div>
+                )}
+                </div>
+                );
+              })}
               {orders.length === 0 && (
                 <p className="p-6 text-center text-sm text-muted-foreground">No orders yet.</p>
               )}
