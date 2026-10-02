@@ -20,6 +20,7 @@ export function ProductCard({
   const [live, setLive] = useState(false);
   const [preorderOpen, setPreorderOpen] = useState(false);
   const liked = wishlist.includes(product.id);
+  const isPre = preorder || !!product.in_collection;
   const price = unitAfterDiscount(product);
   const slug = product.slug ?? product.id;
   const video = embedUrl(product.video_url ?? "", { autoplay: true, loop: true, muted: true });
@@ -58,12 +59,12 @@ export function ProductCard({
               className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-700 group-hover:opacity-100"
             />
           ) : null}
-          {preorder && (
+          {isPre && (
             <span className="absolute left-3 top-3 bg-accent px-2 py-1 font-accent text-[9px] tracking-widest text-accent-foreground">
               PRE-ORDER
             </span>
           )}
-          {product.badge && !preorder && (
+          {product.badge && !isPre && (
             <span className="absolute left-3 top-3 bg-ink px-2 py-1 font-accent text-[9px] text-ink-foreground">
               {product.badge}
             </span>
@@ -112,44 +113,43 @@ export function ProductCard({
           </span>
         </p>
 
-        <div className="mt-3 flex items-center gap-2">
-          <div className="flex items-center border">
-            <button
-              aria-label="Decrease quantity"
-              className="px-2 py-2"
-              onClick={() => setQty((q) => Math.max(1, q - 1))}
-            >
-              <Minus className="h-3 w-3" />
-            </button>
-            <span className="w-6 text-center text-xs">{qty}</span>
-            <button
-              aria-label="Increase quantity"
-              className="px-2 py-2"
-              onClick={() => setQty((q) => q + 1)}
-            >
-              <Plus className="h-3 w-3" />
-            </button>
-          </div>
+        {isPre ? (
           <Button
-            className="h-9 flex-1 font-accent text-[10px] transition-transform active:scale-95"
-            onClick={add}
-          >
-            Add to Cart
-          </Button>
-        </div>
-
-        {preorder && (
-          <Button
-            variant="outline"
-            className="mt-2 h-9 w-full border-accent font-accent text-[10px] text-accent transition-transform active:scale-95"
+            className="mt-3 h-9 w-full bg-accent font-accent text-[10px] text-accent-foreground transition-transform hover:bg-accent/90 active:scale-95"
             onClick={() => setPreorderOpen(true)}
           >
             Pre-Order Now
           </Button>
+        ) : (
+          <div className="mt-3 flex items-center gap-2">
+            <div className="flex items-center border">
+              <button
+                aria-label="Decrease quantity"
+                className="px-2 py-2"
+                onClick={() => setQty((q) => Math.max(1, q - 1))}
+              >
+                <Minus className="h-3 w-3" />
+              </button>
+              <span className="w-6 text-center text-xs">{qty}</span>
+              <button
+                aria-label="Increase quantity"
+                className="px-2 py-2"
+                onClick={() => setQty((q) => q + 1)}
+              >
+                <Plus className="h-3 w-3" />
+              </button>
+            </div>
+            <Button
+              className="h-9 flex-1 font-accent text-[10px] transition-transform active:scale-95"
+              onClick={add}
+            >
+              Add to Cart
+            </Button>
+          </div>
         )}
       </div>
 
-      {preorder && (
+      {isPre && (
         <PreorderDialog product={product} open={preorderOpen} onOpenChange={setPreorderOpen} />
       )}
 
@@ -185,8 +185,16 @@ export function ProductCard({
                 {usd(price)} · {ngn(price, settings.usdToNgn)}
               </p>
             </div>
-            <Button className="font-accent text-[10px]" onClick={add}>
-              Add to Cart
+            <Button
+              className="font-accent text-[10px]"
+              onClick={() => {
+                if (isPre) {
+                  setLive(false);
+                  setPreorderOpen(true);
+                } else add();
+              }}
+            >
+              {isPre ? "Pre-Order Now" : "Add to Cart"}
             </Button>
           </div>
         </DialogContent>

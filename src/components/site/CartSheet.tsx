@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Minus, Plus, Trash2 } from "lucide-react";
-import { toast } from "sonner";
 import {
   Sheet,
   SheetContent,
@@ -8,52 +7,14 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useStore } from "@/lib/store";
-import { cartMessage, lineKey, lineSubtotal, ngn, usd, whatsappLink } from "@/lib/site";
-import { placeOrder } from "@/lib/plain.functions";
+import { lineKey, lineSubtotal, ngn, usd } from "@/lib/site";
+import { CheckoutDialog } from "@/components/site/CheckoutDialog";
 
 export function CartSheet() {
   const { cart, cartOpen, setCartOpen, setQty, removeFromCart, clearCart, cartTotal, settings } =
     useStore();
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
-  const [sending, setSending] = useState(false);
-
-  const checkout = async () => {
-    if (cart.length === 0) return;
-    setSending(true);
-    try {
-      await placeOrder({
-        data: {
-          customer_name: name.trim().slice(0, 120),
-          phone: phone.trim().slice(0, 40),
-          note: address.trim().slice(0, 500),
-          items: cart as unknown as Record<string, unknown>[],
-          total_usd: Number(cartTotal.toFixed(2)),
-          total_ngn: Math.round(cartTotal * settings.usdToNgn),
-        },
-      });
-    } catch {
-      toast.error("Could not record the order, opening WhatsApp anyway.");
-    }
-    const msg = cartMessage(
-      cart,
-      settings.usdToNgn,
-      settings.brand,
-      typeof window !== "undefined" ? window.location.origin : undefined,
-      name,
-      phone,
-      address,
-      { item: settings.checkoutItemLine, body: settings.checkoutMessage },
-    );
-    window.open(whatsappLink(settings.whatsapp, msg), "_blank", "noopener");
-    clearCart();
-    setSending(false);
-    setCartOpen(false);
-    toast.success("Order sent to WhatsApp");
-  };
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   return (
     <Sheet open={cartOpen} onOpenChange={setCartOpen}>
@@ -121,37 +82,24 @@ export function CartSheet() {
               </p>
             </div>
           </div>
-          <div className="space-y-2">
-            <div className="grid grid-cols-2 gap-2">
-              <Input
-                placeholder="Your name"
-                value={name}
-                maxLength={120}
-                onChange={(e) => setName(e.target.value)}
-              />
-              <Input
-                placeholder="Phone"
-                value={phone}
-                maxLength={40}
-                onChange={(e) => setPhone(e.target.value)}
-              />
-            </div>
-            <Input
-              placeholder="Delivery address"
-              value={address}
-              maxLength={500}
-              onChange={(e) => setAddress(e.target.value)}
-            />
-          </div>
           <Button
             className="h-12 w-full font-accent text-[11px]"
-            disabled={cart.length === 0 || sending}
-            onClick={checkout}
+            disabled={cart.length === 0}
+            onClick={() => setCheckoutOpen(true)}
           >
-            {sending ? "Sending…" : "Clear cart & order on WhatsApp"}
+            Checkout · Pay by transfer
           </Button>
+          {cart.length > 0 && (
+            <button
+              className="w-full font-accent text-[10px] text-muted-foreground underline"
+              onClick={clearCart}
+            >
+              Clear bag
+            </button>
+          )}
         </div>
       </SheetContent>
+      <CheckoutDialog open={checkoutOpen} onOpenChange={setCheckoutOpen} />
     </Sheet>
   );
 }
