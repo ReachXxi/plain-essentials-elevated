@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { AddedToCartDialog } from "@/components/site/AddedToCartDialog";
+import { PreorderDialog } from "@/components/site/PreorderDialog";
 import { useStore } from "@/lib/store";
 import { embedUrl, ngn, unitAfterDiscount, usd } from "@/lib/site";
 import { trackEvent } from "@/lib/plain.functions";
@@ -37,6 +38,7 @@ function ProductPage() {
   const [color, setColor] = useState("");
   const [qty, setQty] = useState(1);
   const [videoOpen, setVideoOpen] = useState(false);
+  const [preOpen, setPreOpen] = useState(false);
 
   useEffect(() => {
     if (product) void trackEvent({ data: { kind: "view", label: `product:${product.name}` } });
@@ -152,6 +154,20 @@ function ProductPage() {
             </div>
           )}
 
+          {product.in_collection ? (
+            <div className="mt-8">
+              <span className="inline-block bg-accent px-2 py-1 font-accent text-[9px] tracking-widest text-accent-foreground">
+                PRE-ORDER
+              </span>
+              <Button
+                className="mt-3 h-12 w-full bg-accent font-accent text-[11px] text-accent-foreground hover:bg-accent/90"
+                onClick={() => setPreOpen(true)}
+              >
+                Pre-Order Now
+              </Button>
+              <PreorderDialog product={product} open={preOpen} onOpenChange={setPreOpen} />
+            </div>
+          ) : (
           <div className="mt-8 flex items-center gap-3">
             <div className="flex items-center border">
               <button className="px-3 py-3" onClick={() => setQty((q) => Math.max(1, q - 1))}>
@@ -182,6 +198,7 @@ function ProductPage() {
               Add to Cart
             </Button>
           </div>
+          )}
 
           {video && (
             <Button
