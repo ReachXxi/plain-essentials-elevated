@@ -157,7 +157,7 @@ export function ProductCard({
       <Dialog open={live} onOpenChange={setLive}>
         <DialogContent className="max-w-3xl p-0">
           <DialogTitle className="sr-only">{product.name} live view</DialogTitle>
-          <div className="aspect-video w-full bg-ink">
+          <div className={video?.kind === "video" ? "flex w-full items-center justify-center bg-ink" : "aspect-video w-full bg-ink"}>
             {video?.kind === "video" ? (
               <video
                 src={video.src}
@@ -166,7 +166,7 @@ export function ProductCard({
                 muted
                 playsInline
                 controls
-                className="h-full w-full object-cover"
+                className="max-h-[75vh] w-full object-contain"
               />
             ) : video ? (
               <iframe
