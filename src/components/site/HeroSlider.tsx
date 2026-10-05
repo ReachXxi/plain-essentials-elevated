@@ -20,6 +20,9 @@ export function HeroSlider() {
         <img
           key={src + idx}
           src={src}
+          loading={idx === 0 ? "eager" : "lazy"}
+          decoding="async"
+          fetchPriority={idx === 0 ? "high" : "low"}
           alt=""
           aria-hidden={idx !== i}
           className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ${

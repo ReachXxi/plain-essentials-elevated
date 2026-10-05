@@ -62,11 +62,15 @@ function persist(key: string, value: unknown) {
 
 export { lineKey };
 
+export const siteDataQuery = {
+  queryKey: ["site-data"] as const,
+  queryFn: () => getSiteData(),
+  staleTime: 60_000,
+};
+
 export function StoreProvider({ children }: { children: ReactNode }) {
   const query = useQuery({
-    queryKey: ["site-data"],
-    queryFn: () => getSiteData(),
-    staleTime: 10_000,
+    ...siteDataQuery,
     refetchOnWindowFocus: true,
   });
 

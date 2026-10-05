@@ -12,7 +12,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { StoreProvider } from "@/lib/store";
+import { StoreProvider, siteDataQuery } from "@/lib/store";
 import { ThemeProvider } from "@/lib/theme";
 import { ThemeBridge } from "@/components/site/ThemeBridge";
 import { Toaster } from "../components/ui/sonner";
@@ -111,6 +111,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
     ],
   }),
+  loader: async ({ context }) => {
+    try {
+      await context.queryClient.ensureQueryData(siteDataQuery);
+    } catch {
+      // fall back to client fetch
+    }
+  },
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
