@@ -31,7 +31,7 @@ export function CartSheet() {
           ) : (
             cart.map((l) => (
               <div key={lineKey(l)} className="flex gap-3 border-b py-4">
-                <img
+                <img loading="lazy" decoding="async"
                   src={l.image}
                   alt={l.name}
                   className="h-24 w-20 shrink-0 object-cover"

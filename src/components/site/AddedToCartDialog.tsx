@@ -13,7 +13,7 @@ export function AddedToCartDialog() {
         </DialogHeader>
         {lastAdded && (
           <div className="flex gap-3">
-            <img
+            <img loading="lazy" decoding="async"
               src={lastAdded.image}
               alt={lastAdded.name}
               className="h-24 w-20 object-cover"

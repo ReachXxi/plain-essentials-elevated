@@ -74,7 +74,7 @@ function Index() {
                 >
                   <span className="block h-24 w-24 overflow-hidden rounded-full border-2 border-transparent bg-secondary transition-all duration-300 group-hover:border-accent md:h-28 md:w-28">
                     {img && (
-                      <img
+                      <img loading="lazy" decoding="async"
                         src={img}
                         alt={c}
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
@@ -115,7 +115,7 @@ function Index() {
                 className="group relative block aspect-[4/3] overflow-hidden rounded-2xl bg-secondary"
               >
                 {b.img && (
-                  <img
+                  <img loading="lazy" decoding="async"
                     src={b.img}
                     alt={b.t}
                     className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
