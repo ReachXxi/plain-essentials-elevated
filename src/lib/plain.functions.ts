@@ -264,23 +264,46 @@ export const submitPreorder = createServerFn({ method: "POST" })
         total_ngn: z.number().nonnegative(),
         receipt_url: z.string().max(500).default(""),
         is_preorder: z.boolean().default(true),
+        promo_code: z.string().trim().max(40).default(""),
       })
       .parse(input),
   )
   .handler(async ({ data }) => {
     const { adminDb, syncSheet } = await import("./plain.server");
+    const db = adminDb();
+    // Validate the coupon on the server; totals sent by the client are the pre-discount subtotal.
+    let promo: string | null = null;
+    let pct = 0;
+    if (data.promo_code) {
+      const { data: s } = await db.from("site_settings").select("value").eq("key", "site").maybeSingle();
+      const v = (s?.value ?? {}) as Record<string, unknown>;
+      const enabled = v["promoEnabled"] !== false;
+      const code = String(v["promoCode"] || "PLAIN15").toUpperCase();
+      if (enabled && data.promo_code.toUpperCase() === code) {
+        promo = code;
+        pct = Math.min(90, Math.max(0, Number(v["promoPercent"] ?? 15)));
+      }
+    }
+    const subtotal = data.total_usd;
+    const discount = Number(((subtotal * pct) / 100).toFixed(2));
+    const factor = subtotal > 0 ? (subtotal - discount) / subtotal : 1;
     const row = {
       customer_name: data.customer_name,
       phone: data.phone,
       address: data.address,
       note: data.note,
       items: data.items,
-      total_usd: data.total_usd,
-      total_ngn: data.total_ngn,
+      subtotal_usd: subtotal,
+      promo_code: promo,
+      discount_percent: pct,
+      discount_usd: discount,
+      total_usd: Number((subtotal - discount).toFixed(2)),
+      total_ngn: Math.round(data.total_ngn * factor),
       receipt_url: data.receipt_url || null,
       is_preorder: data.is_preorder,
       status: "pending_verification",
     };
+    if (promo) await db.from("analytics_events").insert({ kind: "click", label: "promo:redeemed" });
     const { data: saved, error } = await adminDb()
       .from("orders")
       .insert(row as never)
