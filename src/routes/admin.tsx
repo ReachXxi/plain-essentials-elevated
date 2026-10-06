@@ -1332,6 +1332,20 @@ function AdminPage() {
           </TabsContent>
 
           <TabsContent value="preorders" className="mt-6 space-y-4">
+            <div className="grid gap-3 border bg-card p-5 sm:grid-cols-2">
+              <label className="flex items-center gap-2 sm:col-span-2 font-accent text-[10px]">
+                <input
+                  type="checkbox"
+                  checked={settings.promoEnabled ?? true}
+                  onChange={(e) => set("promoEnabled", e.target.checked)}
+                />
+                Welcome spin popup (shows once per visit)
+              </label>
+              <Field label="Popup headline" v={settings.promoHeadline ?? ""} on={(v) => set("promoHeadline", v)} />
+              <Field label="Coupon code" v={settings.promoCode ?? ""} on={(v) => set("promoCode", v)} />
+              <NumField label="Discount %" v={settings.promoPercent ?? 15} on={(v) => set("promoPercent", v)} />
+              <NumField label="Countdown (minutes)" v={settings.promoMinutes ?? 15} on={(v) => set("promoMinutes", v)} />
+            </div>
             <div className="grid gap-3 border bg-card p-5 sm:grid-cols-3">
               <Field label="Bank" v={settings.bankName} on={(v) => set("bankName", v)} />
               <Field

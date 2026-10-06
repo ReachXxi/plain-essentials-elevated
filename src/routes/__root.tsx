@@ -16,6 +16,7 @@ import { StoreProvider, siteDataQuery } from "@/lib/store";
 import { ThemeProvider } from "@/lib/theme";
 import { ThemeBridge } from "@/components/site/ThemeBridge";
 import { Toaster } from "../components/ui/sonner";
+import { PromoSpin } from "@/components/site/PromoSpin";
 
 
 function NotFoundComponent() {
@@ -146,6 +147,7 @@ function RootComponent() {
       <ThemeProvider>
         <StoreProvider>
           <ThemeBridge />
+          <PromoSpin />
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
           <Toaster />
