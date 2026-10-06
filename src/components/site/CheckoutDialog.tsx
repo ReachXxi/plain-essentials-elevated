@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { preorderUploadUrl, submitPreorder } from "@/lib/plain.functions";
 import { useStore } from "@/lib/store";
 import { lineKey, lineSubtotal, ngn, usd } from "@/lib/site";
+import { PromoCodeField, usePromo } from "./PromoCodeField";
 
 type Step = "details" | "transfer" | "receipt" | "done";
 
@@ -31,8 +32,9 @@ export function CheckoutDialog({
   const [receipt, setReceipt] = useState<File | null>(null);
   const [reference, setReference] = useState("");
   const [copied, setCopied] = useState(false);
-
-  const totalNgn = Math.round(cartTotal * settings.usdToNgn);
+  const promo = usePromo(cartTotal);
+  const payable = promo.total;
+  const subtotalNgn = Math.round(cartTotal * settings.usdToNgn);
 
   useEffect(() => {
     if (!open) {
@@ -106,9 +108,10 @@ export function CheckoutDialog({
           note: note.trim(),
           items: cart as unknown as Record<string, unknown>[],
           total_usd: Number(cartTotal.toFixed(2)),
-          total_ngn: totalNgn,
+          total_ngn: subtotalNgn,
           receipt_url: url,
           is_preorder: false,
+          promo_code: promo.applied,
         },
       });
       setReference(res.reference);
@@ -143,13 +146,26 @@ export function CheckoutDialog({
                   <p className="font-accent text-[11px]">{usd(lineSubtotal(l))}</p>
                 </div>
               ))}
+              {promo.discount > 0 && (
+                <>
+                  <div className="flex justify-between border-t pt-2 font-accent text-[10px] text-muted-foreground">
+                    <span>Subtotal</span>
+                    <span>{usd(cartTotal)}</span>
+                  </div>
+                  <div className="flex justify-between font-accent text-[10px] text-accent">
+                    <span>Promo {promo.applied} (-{promo.percent}%)</span>
+                    <span>-{usd(promo.discount)}</span>
+                  </div>
+                </>
+              )}
               <div className="flex items-center justify-between border-t pt-2">
                 <span className="font-accent text-[10px] text-muted-foreground">Total</span>
                 <span className="font-display text-xl">
-                  {usd(cartTotal)} · {ngn(cartTotal, settings.usdToNgn)}
+                  {usd(payable)} · {ngn(payable, settings.usdToNgn)}
                 </span>
               </div>
             </div>
+            <PromoCodeField promo={promo} />
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <Label className="font-accent text-[10px]">Full name</Label>
@@ -190,7 +206,7 @@ export function CheckoutDialog({
             </div>
             <div className="space-y-2 border p-5 text-center">
               <p className="font-accent text-[10px] text-muted-foreground">Transfer exactly</p>
-              <p className="font-display text-4xl">{ngn(cartTotal, settings.usdToNgn)}</p>
+              <p className="font-display text-4xl">{ngn(payable, settings.usdToNgn)}</p>
               <div className="pt-3 text-sm">
                 <p className="font-accent text-[10px] text-muted-foreground">{settings.bankName}</p>
                 <p className="font-display text-2xl tracking-wide">{settings.bankAccount}</p>
