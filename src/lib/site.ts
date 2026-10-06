@@ -81,6 +81,11 @@ export type SiteSettings = {
   preorderMsgPending: string;
   preorderMsgPaid: string;
   preorderMsgDelivered: string;
+  promoEnabled?: boolean;
+  promoHeadline?: string;
+  promoCode?: string;
+  promoPercent?: number;
+  promoMinutes?: number;
 };
 
 export const defaultPreorderMsgPending =
@@ -154,6 +159,11 @@ export const defaultSettings: SiteSettings = {
   preorderMsgPending: defaultPreorderMsgPending,
   preorderMsgPaid: defaultPreorderMsgPaid,
   preorderMsgDelivered: defaultPreorderMsgDelivered,
+  promoEnabled: true,
+  promoHeadline: "Your Society welcome gift is almost unlocked",
+  promoCode: "PLAIN15",
+  promoPercent: 15,
+  promoMinutes: 15,
 };
 
 /** Fill {name} {brand} {items} {total} {ref} in a pre-order WhatsApp template. */
