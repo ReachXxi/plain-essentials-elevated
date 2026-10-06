@@ -100,14 +100,18 @@ export type Database = {
           address: string
           created_at: string
           customer_name: string
+          discount_percent: number
+          discount_usd: number
           id: string
           is_preorder: boolean
           items: Json
           note: string
           phone: string
+          promo_code: string | null
           receipt_url: string | null
           reference: string
           status: string
+          subtotal_usd: number
           total_ngn: number
           total_usd: number
           updated_at: string
@@ -116,14 +120,18 @@ export type Database = {
           address?: string
           created_at?: string
           customer_name?: string
+          discount_percent?: number
+          discount_usd?: number
           id?: string
           is_preorder?: boolean
           items?: Json
           note?: string
           phone?: string
+          promo_code?: string | null
           receipt_url?: string | null
           reference?: string
           status?: string
+          subtotal_usd?: number
           total_ngn?: number
           total_usd?: number
           updated_at?: string
@@ -132,14 +140,18 @@ export type Database = {
           address?: string
           created_at?: string
           customer_name?: string
+          discount_percent?: number
+          discount_usd?: number
           id?: string
           is_preorder?: boolean
           items?: Json
           note?: string
           phone?: string
+          promo_code?: string | null
           receipt_url?: string | null
           reference?: string
           status?: string
+          subtotal_usd?: number
           total_ngn?: number
           total_usd?: number
           updated_at?: string
