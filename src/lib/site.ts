@@ -86,7 +86,39 @@ export type SiteSettings = {
   promoCode?: string;
   promoPercent?: number;
   promoMinutes?: number;
+  promoFrequency?: PromoFrequency;
+  promoSegments?: PromoSegment[];
 };
+
+export type PromoFrequency = "visit" | "session" | "daily";
+/** One wheel slice. `weight` is its priority: chance = weight / sum of weights. Empty code = no reward. */
+export type PromoSegment = { label: string; code: string; percent: number; weight: number };
+
+export const DEFAULT_PROMO_SEGMENTS: PromoSegment[] = [
+  { label: "15% OFF", code: "PLAIN15", percent: 15, weight: 50 },
+  { label: "FREE SHIP", code: "", percent: 0, weight: 0 },
+  { label: "5% OFF", code: "PLAIN5", percent: 5, weight: 20 },
+  { label: "VAULT", code: "", percent: 0, weight: 0 },
+  { label: "10% OFF", code: "PLAIN10", percent: 10, weight: 30 },
+  { label: "TRY AGAIN", code: "", percent: 0, weight: 0 },
+];
+
+/** Segments in use; falls back to the legacy single code/percent when none are configured. */
+export function promoSegmentsOf(s: Partial<SiteSettings>): PromoSegment[] {
+  if (s.promoSegments && s.promoSegments.length >= 2) return s.promoSegments;
+  const code = s.promoCode || "PLAIN15";
+  const pct = s.promoPercent ?? 15;
+  return DEFAULT_PROMO_SEGMENTS.map((seg, i) =>
+    i === 0 ? { label: `${pct}% OFF`, code, percent: pct, weight: 100 } : { ...seg, weight: 0 },
+  );
+}
+
+/** Finds the reward for a typed code (case-insensitive). */
+export function findPromo(s: Partial<SiteSettings>, input: string): PromoSegment | null {
+  const c = input.trim().toUpperCase();
+  if (!c) return null;
+  return promoSegmentsOf(s).find((g) => g.code && g.percent > 0 && g.code.toUpperCase() === c) ?? null;
+}
 
 export const defaultPreorderMsgPending =
   "Hi {name}, thanks for checking out {brand}! Your pre-order for {items} has been accepted and we are verifying your payment. We'll get back to you with delivery details once validated.";

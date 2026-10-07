@@ -278,10 +278,11 @@ export const submitPreorder = createServerFn({ method: "POST" })
       const { data: s } = await db.from("site_settings").select("value").eq("key", "site").maybeSingle();
       const v = (s?.value ?? {}) as Record<string, unknown>;
       const enabled = v["promoEnabled"] !== false;
-      const code = String(v["promoCode"] || "PLAIN15").toUpperCase();
-      if (enabled && data.promo_code.toUpperCase() === code) {
-        promo = code;
-        pct = Math.min(90, Math.max(0, Number(v["promoPercent"] ?? 15)));
+      const { findPromo } = await import("@/lib/site");
+      const seg = enabled ? findPromo(v as never, data.promo_code) : null;
+      if (seg) {
+        promo = seg.code.toUpperCase();
+        pct = Math.min(90, Math.max(0, Number(seg.percent)));
       }
     }
     const subtotal = data.total_usd;
