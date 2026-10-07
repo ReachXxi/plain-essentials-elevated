@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { preorderUploadUrl, submitPreorder } from "@/lib/plain.functions";
 import { useStore } from "@/lib/store";
 import { lineSubtotal, ngn, usd, type CartLine, type Product } from "@/lib/site";
+import { PromoCodeField, usePromo } from "./PromoCodeField";
 
 type Step = "details" | "transfer" | "receipt" | "done";
 
@@ -52,8 +53,10 @@ export function PreorderDialog({
     }),
     [product, size, color, qty],
   );
-  const totalUsd = lineSubtotal(line);
-  const totalNgn = Math.round(totalUsd * settings.usdToNgn);
+  const subtotalUsd = lineSubtotal(line);
+  const promo = usePromo(subtotalUsd);
+  const totalUsd = promo.total;
+  const subtotalNgn = Math.round(subtotalUsd * settings.usdToNgn);
 
   useEffect(() => {
     if (!open) {
@@ -126,9 +129,10 @@ export function PreorderDialog({
           address: address.trim(),
           note: note.trim(),
           items: [{ ...line } as unknown as Record<string, unknown>],
-          total_usd: Number(totalUsd.toFixed(2)),
-          total_ngn: totalNgn,
+          total_usd: Number(subtotalUsd.toFixed(2)),
+          total_ngn: subtotalNgn,
           receipt_url: url,
+          promo_code: promo.applied,
         },
       });
       setReference(res.reference);
@@ -219,6 +223,12 @@ export function PreorderDialog({
               <Label className="font-accent text-[10px]">Note (optional)</Label>
               <Input value={note} onChange={(e) => setNote(e.target.value)} />
             </div>
+            <PromoCodeField promo={promo} />
+            {promo.discount > 0 && (
+              <p className="font-accent text-[10px] text-accent">
+                Saved {usd(promo.discount)} · Pay {usd(totalUsd)}
+              </p>
+            )}
             <Button className="h-11 w-full font-accent text-[11px]" onClick={goTransfer}>
               Continue to payment
             </Button>

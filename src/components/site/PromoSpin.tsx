@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Copy, Gift, X } from "lucide-react";
 import { toast } from "sonner";
 import { useStore } from "@/lib/store";
+import { trackEvent } from "@/lib/plain.functions";
 
 const SESSION_KEY = "plain_promo_seen";
 const CLAIM_KEY = "plain_promo_claim";
@@ -40,6 +41,7 @@ export function PromoSpin() {
     const t = setTimeout(() => {
       setOpen(true);
       sessionStorage.setItem(SESSION_KEY, "1");
+      void trackEvent({ data: { kind: "view", label: "promo:impression" } }).catch(() => {});
     }, 2200);
     return () => clearTimeout(t);
   }, [enabled]);
@@ -63,11 +65,13 @@ export function PromoSpin() {
   const spin = () => {
     if (spinning) return;
     setSpinning(true);
+    void trackEvent({ data: { kind: "click", label: "promo:spin" } }).catch(() => {});
     // Always land on segment 0 (the configured reward) after several turns.
     setRotation(360 * 6 + (360 - 30) + Math.random() * 10 - 5);
     setTimeout(() => {
       const c = { code, percent, expires: Date.now() + minutes * 60_000 };
       localStorage.setItem(CLAIM_KEY, JSON.stringify(c));
+      void trackEvent({ data: { kind: "click", label: "promo:claim" } }).catch(() => {});
       setClaim(c);
       setNow(Date.now());
       setSpinning(false);
@@ -81,7 +85,7 @@ export function PromoSpin() {
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(claim?.code || code);
-      toast.success("Code copied — mention it at checkout");
+      toast.success("Code copied — it auto-applies at checkout");
     } catch {
       toast(claim?.code || code);
     }
