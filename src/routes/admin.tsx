@@ -322,8 +322,14 @@ function AdminPage() {
 
   const views = events.filter((e) => e.kind === "view").length;
   const clicks = events.filter((e) => e.kind === "click").length;
-  const approved = orders.filter((o) => o.status === "approved");
+  const approved = orders.filter((o) =>
+    ["approved", "payment_received", "order_delivered"].includes(o.status),
+  );
   const revenue = approved.reduce((s, o) => s + Number(o.total_usd), 0);
+  const promoCount = (label: string) => events.filter((e) => e.label === label).length;
+  const promoOrders = orders.filter((o) => o.promo_code) as Array<
+    (typeof orders)[number] & { promo_code: string; discount_usd: number }
+  >;
 
   return (
     <div className="min-h-screen bg-secondary/40">
@@ -369,6 +375,7 @@ function AdminPage() {
               ["newsletter", "Newsletter"],
               ["orders", "Orders"],
               ["preorders", "Pre-orders"],
+              ["promo", "Promo"],
             ].map(([v, l]) => (
               <TabsTrigger
                 key={v}
@@ -1331,7 +1338,21 @@ function AdminPage() {
             </div>
           </TabsContent>
 
-          <TabsContent value="preorders" className="mt-6 space-y-4">
+          <TabsContent value="promo" className="mt-6 space-y-4">
+            <div className="grid gap-3 sm:grid-cols-5">
+              {[
+                ["Popups shown", promoCount("promo:impression")],
+                ["Spins", promoCount("promo:spin")],
+                ["Codes claimed", promoCount("promo:claim")],
+                ["Applied at checkout", promoCount("promo:applied")],
+                ["Orders with promo", promoOrders.length],
+              ].map(([l, n]) => (
+                <div key={String(l)} className="border bg-card p-4">
+                  <p className="font-accent text-[10px] text-muted-foreground">{l}</p>
+                  <p className="font-display text-3xl">{n}</p>
+                </div>
+              ))}
+            </div>
             <div className="grid gap-3 border bg-card p-5 sm:grid-cols-2">
               <label className="flex items-center gap-2 sm:col-span-2 font-accent text-[10px]">
                 <input
@@ -1339,13 +1360,44 @@ function AdminPage() {
                   checked={settings.promoEnabled ?? true}
                   onChange={(e) => set("promoEnabled", e.target.checked)}
                 />
-                Welcome spin popup (shows once per visit)
+                Welcome spin popup (shows once per visit) — coupon is accepted at checkout only while enabled
               </label>
               <Field label="Popup headline" v={settings.promoHeadline ?? ""} on={(v) => set("promoHeadline", v)} />
               <Field label="Coupon code" v={settings.promoCode ?? ""} on={(v) => set("promoCode", v)} />
               <NumField label="Discount %" v={settings.promoPercent ?? 15} on={(v) => set("promoPercent", v)} />
               <NumField label="Countdown (minutes)" v={settings.promoMinutes ?? 15} on={(v) => set("promoMinutes", v)} />
+              <div className="flex gap-2 sm:col-span-2">
+                <Button
+                  variant="outline"
+                  className="font-accent text-[10px]"
+                  onClick={() => {
+                    sessionStorage.removeItem("plain_promo_seen");
+                    localStorage.removeItem("plain_promo_claim");
+                    window.open("/", "_blank");
+                  }}
+                >
+                  Test popup on this device
+                </Button>
+                <p className="self-center text-xs text-muted-foreground">Remember to Save changes after editing.</p>
+              </div>
             </div>
+            <div className="divide-y border bg-card">
+              <p className="p-4 font-accent text-[10px] text-muted-foreground">Orders that used a promo</p>
+              {promoOrders.map((o) => (
+                <div key={o.id} className="flex flex-wrap items-center justify-between gap-2 p-4 text-sm">
+                  <span>{o.reference} · {o.customer_name}</span>
+                  <span className="font-accent text-[10px]">
+                    {o.promo_code} · -{usd(Number(o.discount_usd))} · paid {usd(Number(o.total_usd))} · {o.status}
+                  </span>
+                </div>
+              ))}
+              {promoOrders.length === 0 && (
+                <p className="p-6 text-center text-sm text-muted-foreground">No promo orders yet.</p>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="preorders" className="mt-6 space-y-4">
             <div className="grid gap-3 border bg-card p-5 sm:grid-cols-3">
               <Field label="Bank" v={settings.bankName} on={(v) => set("bankName", v)} />
               <Field
