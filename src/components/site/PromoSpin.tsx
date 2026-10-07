@@ -71,6 +71,7 @@ export function PromoSpin() {
     setTimeout(() => {
       const c = { code, percent, expires: Date.now() + minutes * 60_000 };
       localStorage.setItem(CLAIM_KEY, JSON.stringify(c));
+      void trackEvent({ data: { kind: "click", label: "promo:claim" } }).catch(() => {});
       setClaim(c);
       setNow(Date.now());
       setSpinning(false);
@@ -84,7 +85,7 @@ export function PromoSpin() {
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(claim?.code || code);
-      toast.success("Code copied — mention it at checkout");
+      toast.success("Code copied — it auto-applies at checkout");
     } catch {
       toast(claim?.code || code);
     }
