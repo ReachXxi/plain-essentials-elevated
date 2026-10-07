@@ -64,6 +64,9 @@ type OrderRow = {
   created_at: string;
   address?: string;
   is_preorder?: boolean;
+  promo_code?: string | null;
+  discount_usd?: number;
+  subtotal_usd?: number;
 };
 
 type EventRow = { id: number; kind: string; label: string; created_at: string };
