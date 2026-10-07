@@ -1363,12 +1363,75 @@ function AdminPage() {
                   checked={settings.promoEnabled ?? true}
                   onChange={(e) => set("promoEnabled", e.target.checked)}
                 />
-                Welcome spin popup (shows once per visit) — coupon is accepted at checkout only while enabled
+                Spin wheel popup — codes are accepted at checkout only while enabled
               </label>
               <Field label="Popup headline" v={settings.promoHeadline ?? ""} on={(v) => set("promoHeadline", v)} />
-              <Field label="Coupon code" v={settings.promoCode ?? ""} on={(v) => set("promoCode", v)} />
-              <NumField label="Discount %" v={settings.promoPercent ?? 15} on={(v) => set("promoPercent", v)} />
               <NumField label="Countdown (minutes)" v={settings.promoMinutes ?? 15} on={(v) => set("promoMinutes", v)} />
+              <label className="space-y-1 sm:col-span-2">
+                <span className="font-accent text-[10px] text-muted-foreground">How often the popup shows</span>
+                <select
+                  className="h-10 w-full border bg-background px-3 text-sm"
+                  value={settings.promoFrequency ?? "session"}
+                  onChange={(e) => set("promoFrequency", e.target.value as PromoFrequency)}
+                >
+                  <option value="visit">Every page visit / refresh</option>
+                  <option value="session">Once per browsing session</option>
+                  <option value="daily">Once every 24 hours</option>
+                </select>
+                <span className="text-xs text-muted-foreground">
+                  Shoppers with an unexpired reward see their code instead of the wheel.
+                </span>
+              </label>
+              {(() => {
+                const segs = promoSegmentsOf(settings);
+                const total = segs.reduce((a, g) => a + Math.max(0, Number(g.weight) || 0), 0);
+                const upd = (next: PromoSegment[]) => set("promoSegments", next);
+                return (
+                  <div className="space-y-2 sm:col-span-2">
+                    <p className="font-accent text-[10px] text-muted-foreground">
+                      Wheel options — priority sets the chance of landing (leave code empty for no reward)
+                    </p>
+                    <div className="hidden grid-cols-[2fr_1.5fr_1fr_1fr_auto_auto] gap-2 font-accent text-[9px] text-muted-foreground sm:grid">
+                      <span>Label</span><span>Code</span><span>Discount %</span><span>Priority</span><span>Chance</span><span />
+                    </div>
+                    {segs.map((g, i) => {
+                      const patch = (p: Partial<PromoSegment>) =>
+                        upd(segs.map((x, j) => (j === i ? { ...x, ...p } : x)));
+                      const chance = total ? (Math.max(0, Number(g.weight) || 0) / total) * 100 : 100 / segs.length;
+                      return (
+                        <div key={i} className="grid grid-cols-2 items-center gap-2 border p-2 sm:grid-cols-[2fr_1.5fr_1fr_1fr_auto_auto] sm:border-0 sm:p-0">
+                          <Input value={g.label} placeholder="Label" onChange={(e) => patch({ label: e.target.value })} />
+                          <Input value={g.code} placeholder="Code" onChange={(e) => patch({ code: e.target.value.toUpperCase() })} />
+                          <Input type="number" min={0} max={90} value={g.percent} onChange={(e) => patch({ percent: Number(e.target.value) })} />
+                          <Input type="number" min={0} value={g.weight} onChange={(e) => patch({ weight: Number(e.target.value) })} />
+                          <span className="text-xs tabular-nums text-muted-foreground">{chance.toFixed(0)}%</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={segs.length <= 2}
+                            onClick={() => upd(segs.filter((_, j) => j !== i))}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      );
+                    })}
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={segs.length >= 10}
+                        onClick={() => upd([...segs, { label: "NEW", code: "", percent: 0, weight: 0 }])}
+                      >
+                        Add option
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => upd(DEFAULT_PROMO_SEGMENTS)}>
+                        Reset to defaults
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })()}
               <div className="flex gap-2 sm:col-span-2">
                 <Button
                   variant="outline"
