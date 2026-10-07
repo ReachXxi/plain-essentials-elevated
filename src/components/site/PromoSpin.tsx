@@ -3,8 +3,10 @@ import { Copy, Gift, X } from "lucide-react";
 import { toast } from "sonner";
 import { useStore } from "@/lib/store";
 import { trackEvent } from "@/lib/plain.functions";
+import { promoSegmentsOf } from "@/lib/site";
 
 const SESSION_KEY = "plain_promo_seen";
+const DAILY_KEY = "plain_promo_last";
 const CLAIM_KEY = "plain_promo_claim";
 
 type Claim = { code: string; percent: number; expires: number };
@@ -21,8 +23,8 @@ function readClaim(): Claim | null {
 export function PromoSpin() {
   const { settings } = useStore();
   const enabled = settings.promoEnabled ?? true;
-  const code = settings.promoCode || "PLAIN15";
-  const percent = settings.promoPercent ?? 15;
+  const frequency = settings.promoFrequency ?? "session";
+  const segs = promoSegmentsOf(settings);
   const minutes = settings.promoMinutes ?? 15;
 
   const [open, setOpen] = useState(false);
@@ -30,21 +32,23 @@ export function PromoSpin() {
   const [spinning, setSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [now, setNow] = useState(Date.now());
+  const [noWin, setNoWin] = useState("");
 
   useEffect(() => {
     if (!enabled) return;
     const existing = readClaim();
     setClaim(existing);
-    if (sessionStorage.getItem(SESSION_KEY)) return;
-    // New visit: expired or no claim gets a fresh spin.
+    if (frequency === "session" && sessionStorage.getItem(SESSION_KEY)) return;
+    if (frequency === "daily" && Date.now() - Number(localStorage.getItem(DAILY_KEY) || 0) < 86_400_000) return;
     if (!existing) localStorage.removeItem(CLAIM_KEY);
     const t = setTimeout(() => {
       setOpen(true);
       sessionStorage.setItem(SESSION_KEY, "1");
+      localStorage.setItem(DAILY_KEY, String(Date.now()));
       void trackEvent({ data: { kind: "view", label: "promo:impression" } }).catch(() => {});
     }, 2200);
     return () => clearTimeout(t);
-  }, [enabled]);
+  }, [enabled, frequency]);
 
   useEffect(() => {
     if (!claim) return;
@@ -60,21 +64,38 @@ export function PromoSpin() {
 
   if (!enabled) return null;
 
-  const segments = [`${percent}% OFF`, "FREE SHIP", "5% OFF", "VAULT", "10% OFF", "TRY AGAIN"];
+  const n = segs.length;
+  const slice = 360 / n;
+  const [missed, setMissed] = [noWin, setNoWin];
 
   const spin = () => {
     if (spinning) return;
     setSpinning(true);
     void trackEvent({ data: { kind: "click", label: "promo:spin" } }).catch(() => {});
-    // Always land on segment 0 (the configured reward) after several turns.
-    setRotation(360 * 6 + (360 - 30) + Math.random() * 10 - 5);
+    // Weighted pick by each slice's priority; zero total weight falls back to equal odds.
+    const weights = segs.map((g) => Math.max(0, Number(g.weight) || 0));
+    const total = weights.reduce((a, b) => a + b, 0);
+    let r = Math.random() * (total || n);
+    let idx = 0;
+    for (; idx < n - 1; idx++) {
+      r -= total ? weights[idx] : 1;
+      if (r < 0) break;
+    }
+    const win = segs[idx];
+    const base = rotation - (rotation % 360);
+    setRotation(base + 360 * 6 + (360 - (idx * slice + slice / 2)) + (Math.random() - 0.5) * slice * 0.5);
     setTimeout(() => {
-      const c = { code, percent, expires: Date.now() + minutes * 60_000 };
+      setSpinning(false);
+      if (!win.code || !(win.percent > 0)) {
+        setMissed(win.label);
+        return;
+      }
+      setMissed("");
+      const c = { code: win.code, percent: win.percent, expires: Date.now() + minutes * 60_000 };
       localStorage.setItem(CLAIM_KEY, JSON.stringify(c));
       void trackEvent({ data: { kind: "click", label: "promo:claim" } }).catch(() => {});
       setClaim(c);
       setNow(Date.now());
-      setSpinning(false);
     }, 4200);
   };
 
@@ -84,10 +105,10 @@ export function PromoSpin() {
 
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(claim?.code || code);
+      await navigator.clipboard.writeText(claim?.code || "");
       toast.success("Code copied — it auto-applies at checkout");
     } catch {
-      toast(claim?.code || code);
+      toast(claim?.code || "");
     }
   };
 
@@ -140,21 +161,21 @@ export function PromoSpin() {
                     style={{
                       transform: `rotate(${rotation}deg)`,
                       transition: "transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)",
-                      background: `conic-gradient(${segments
+                      background: `conic-gradient(${segs
                         .map(
                           (_, i) =>
-                            `${i % 2 ? "var(--ink)" : "var(--accent)"} ${i * 60}deg ${(i + 1) * 60}deg`,
+                            `${i % 2 ? "var(--ink)" : "var(--accent)"} ${i * slice}deg ${(i + 1) * slice}deg`,
                         )
                         .join(",")})`,
                     }}
                   >
-                    {segments.map((s, i) => (
+                    {segs.map((g, i) => (
                       <span
-                        key={s}
+                        key={i}
                         className={`absolute left-1/2 top-1/2 origin-left font-accent text-[10px] ${i % 2 ? "text-accent" : "text-ink"}`}
-                        style={{ transform: `rotate(${i * 60 + 30 - 90}deg) translateX(40px)` }}
+                        style={{ transform: `rotate(${i * slice + slice / 2 - 90}deg) translateX(40px)` }}
                       >
-                        {s}
+                        {g.label}
                       </span>
                     ))}
                   </div>
@@ -165,9 +186,11 @@ export function PromoSpin() {
                   disabled={spinning}
                   className="mt-6 w-full bg-accent py-3 font-accent text-xs text-accent-foreground transition hover:opacity-90 disabled:opacity-60"
                 >
-                  {spinning ? "Spinning…" : "Spin to unlock"}
+                  {spinning ? "Spinning…" : missed ? "Spin again" : "Spin to unlock"}
                 </button>
-                <p className="mt-3 text-[11px] text-ink-foreground/60">One spin per visit.</p>
+                <p className="mt-3 text-[11px] text-ink-foreground/60">
+                  {missed ? `You landed on ${missed} — give it another spin!` : "Spin for your reward."}
+                </p>
               </>
             ) : (
               <>

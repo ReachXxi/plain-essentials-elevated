@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
 import { trackEvent } from "@/lib/plain.functions";
+import { findPromo } from "@/lib/site";
 
 export const CLAIM_KEY = "plain_promo_claim";
 
@@ -22,20 +23,24 @@ export function readClaimCode(): string {
 export function usePromo(subtotal: number) {
   const { settings } = useStore();
   const enabled = settings.promoEnabled ?? true;
-  const valid = (settings.promoCode || "PLAIN15").toUpperCase();
-  const pct = settings.promoPercent ?? 15;
   const [applied, setApplied] = useState("");
+  const [pct, setPct] = useState(0);
 
   useEffect(() => {
-    const c = readClaimCode();
-    if (enabled && c && c.toUpperCase() === valid) setApplied(valid);
-  }, [enabled, valid]);
+    const seg = enabled ? findPromo(settings, readClaimCode()) : null;
+    if (seg) {
+      setApplied(seg.code.toUpperCase());
+      setPct(seg.percent);
+    }
+  }, [enabled, settings]);
 
   const percent = applied ? pct : 0;
   const discount = Number(((subtotal * percent) / 100).toFixed(2));
   const apply = (input: string) => {
-    if (enabled && input.trim().toUpperCase() === valid) {
-      setApplied(valid);
+    const seg = enabled ? findPromo(settings, input) : null;
+    if (seg) {
+      setApplied(seg.code.toUpperCase());
+      setPct(seg.percent);
       void trackEvent({ data: { kind: "click", label: "promo:applied" } }).catch(() => {});
       return true;
     }
