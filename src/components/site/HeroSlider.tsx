@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
 
@@ -52,14 +51,16 @@ export function HeroSlider() {
               {settings.heroCta}
             </Button>
           </a>
-          <Link to="/gallery">
+          {(settings.hero2Label ?? "Gallery") && (
+          <a href={settings.hero2Link || "/gallery"}>
             <Button
               variant="outline"
               className="h-12 border-white/40 bg-transparent px-8 font-accent text-[11px] text-ink-foreground hover:bg-white/10 hover:text-ink-foreground"
             >
-              Gallery
+              {settings.hero2Label ?? "Gallery"}
             </Button>
-          </Link>
+          </a>
+          )}
         </div>
 
         {slides.length > 1 && (
