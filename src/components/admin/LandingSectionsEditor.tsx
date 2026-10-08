@@ -23,9 +23,7 @@ type Props = {
 function move<T>(arr: T[], i: number, d: number) {
   const j = i + d;
   if (j < 0 || j >= arr.length) return arr;
-  const c = [...arr];
-  [c[i], c[j]] = [c[j] as T, c[i] as T];
-  return c;
+  return arr.map((x, k) => (k === i ? (arr[j] as T) : k === j ? (arr[i] as T) : x));
 }
 
 function Toggle({ label, checked, on }: { label: string; checked: boolean; on: (v: boolean) => void }) {
