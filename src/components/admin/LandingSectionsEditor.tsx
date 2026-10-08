@@ -24,7 +24,7 @@ function move<T>(arr: T[], i: number, d: number) {
   const j = i + d;
   if (j < 0 || j >= arr.length) return arr;
   const c = [...arr];
-  [c[i], c[j]] = [c[j], c[i]];
+  [c[i], c[j]] = [c[j] as T, c[i] as T];
   return c;
 }
 
