@@ -33,6 +33,12 @@ import {
   type Product,
   type SiteSettings,
 } from "@/lib/site";
+import {
+  DEFAULT_PROMO_SEGMENTS,
+  promoSegmentsOf,
+  type PromoFrequency,
+  type PromoSegment,
+} from "@/lib/site";
 import { useStore } from "@/lib/store";
 
 

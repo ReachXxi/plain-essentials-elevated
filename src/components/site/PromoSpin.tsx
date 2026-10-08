@@ -78,10 +78,10 @@ export function PromoSpin() {
     let r = Math.random() * (total || n);
     let idx = 0;
     for (; idx < n - 1; idx++) {
-      r -= total ? weights[idx] : 1;
+      r -= total ? (weights[idx] ?? 0) : 1;
       if (r < 0) break;
     }
-    const win = segs[idx];
+    const win = segs[idx] ?? segs[0]!;
     const base = rotation - (rotation % 360);
     setRotation(base + 360 * 6 + (360 - (idx * slice + slice / 2)) + (Math.random() - 0.5) * slice * 0.5);
     setTimeout(() => {
