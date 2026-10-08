@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { LandingSectionsEditor } from "@/components/admin/LandingSectionsEditor";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -622,6 +623,8 @@ function AdminPage() {
                 }}
               />
             </div>
+
+            <LandingSectionsEditor settings={settings} set={set} upload={upload} products={products} />
           </TabsContent>
 
           <TabsContent value="theme" className="mt-6 space-y-4">

@@ -88,7 +88,34 @@ export type SiteSettings = {
   promoMinutes?: number;
   promoFrequency?: PromoFrequency;
   promoSegments?: PromoSegment[];
+  hero2Label?: string;
+  hero2Link?: string;
+  showCategories?: boolean;
+  featuredTitle?: string;
+  featuredSubtitle?: string;
+  featuredIds?: string[];
+  showFeatured?: boolean;
+  banners?: Banner[];
+  showBanners?: boolean;
+  showCollectionSection?: boolean;
+  shopTitle?: string;
+  pillars?: Pillar[];
+  showPillars?: boolean;
 };
+
+export type Banner = { image: string; kicker: string; title: string; cta: string; link: string; hidden?: boolean };
+export type Pillar = { n: string; t: string; d: string };
+
+export const DEFAULT_BANNERS: Banner[] = [
+  { image: "", kicker: "New in", title: "Everyday essentials", cta: "Shop now", link: "#shop" },
+  { image: "", kicker: "Pre-order", title: "The Collection", cta: "Shop now", link: "/collection" },
+];
+export const DEFAULT_PILLARS: Pillar[] = [
+  { n: "01.", t: "Premium Quality", d: "Sourced from the finest mills worldwide." },
+  { n: "02.", t: "Transparent Pricing", d: "VAT and shipping shown before you pay." },
+  { n: "03.", t: "Sustainable", d: "Eco-friendly materials and packaging." },
+  { n: "04.", t: "Bank Transfer Checkout", d: "Pay by transfer, upload your receipt, done." },
+];
 
 export type PromoFrequency = "visit" | "session" | "daily";
 /** One wheel slice. `weight` is its priority: chance = weight / sum of weights. Empty code = no reward. */
