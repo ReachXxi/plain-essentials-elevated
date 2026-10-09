@@ -265,6 +265,7 @@ export const submitPreorder = createServerFn({ method: "POST" })
         receipt_url: z.string().max(500).default(""),
         is_preorder: z.boolean().default(true),
         promo_code: z.string().trim().max(40).default(""),
+        gift_size: z.string().trim().max(10).default(""),
       })
       .parse(input),
   )
@@ -274,9 +275,25 @@ export const submitPreorder = createServerFn({ method: "POST" })
     // Validate the coupon on the server; totals sent by the client are the pre-discount subtotal.
     let promo: string | null = null;
     let pct = 0;
+    const { data: s } = await db.from("site_settings").select("value").eq("key", "site").maybeSingle();
+    const v = (s?.value ?? {}) as Record<string, unknown>;
+    const items = [...data.items];
+    {
+      const { giftUnlocked } = await import("@/lib/site");
+      const qty = data.items.reduce((a, l) => a + (Number(l["qty"]) || 0), 0);
+      if (data.gift_size && giftUnlocked(v as never, qty, data.total_usd)) {
+        items.push({
+          name: String(v["giftName"] || "Happiness is Free Tee") + " (FREE GIFT)",
+          size: data.gift_size,
+          color: "",
+          qty: 1,
+          price: 0,
+          image: String(v["giftImage"] || ""),
+          gift: true,
+        });
+      }
+    }
     if (data.promo_code) {
-      const { data: s } = await db.from("site_settings").select("value").eq("key", "site").maybeSingle();
-      const v = (s?.value ?? {}) as Record<string, unknown>;
       const enabled = v["promoEnabled"] !== false;
       const { findPromo } = await import("@/lib/site");
       const seg = enabled ? findPromo(v as never, data.promo_code) : null;
@@ -293,7 +310,7 @@ export const submitPreorder = createServerFn({ method: "POST" })
       phone: data.phone,
       address: data.address,
       note: data.note,
-      items: data.items,
+      items,
       subtotal_usd: subtotal,
       promo_code: promo,
       discount_percent: pct,
