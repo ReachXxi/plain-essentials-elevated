@@ -287,7 +287,11 @@ export const submitPreorder = createServerFn({ method: "POST" })
           size: data.gift_size,
           color: "",
           qty: 1,
-          price: 0,
+          productId: "gift",
+          unitUsd: 0,
+          vatPercent: 0,
+          shippingUsd: 0,
+          discountPercent: 0,
           image: String(v["giftImage"] || ""),
           gift: true,
         });

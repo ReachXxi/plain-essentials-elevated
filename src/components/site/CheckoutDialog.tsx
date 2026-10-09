@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { preorderUploadUrl, submitPreorder } from "@/lib/plain.functions";
 import { useStore } from "@/lib/store";
-import { lineKey, lineSubtotal, ngn, usd } from "@/lib/site";
+import { giftUnlocked, lineKey, lineSubtotal, ngn, usd } from "@/lib/site";
 import { PromoCodeField, usePromo } from "./PromoCodeField";
 
 type Step = "details" | "transfer" | "receipt" | "done";
@@ -32,6 +32,11 @@ export function CheckoutDialog({
   const [receipt, setReceipt] = useState<File | null>(null);
   const [reference, setReference] = useState("");
   const [copied, setCopied] = useState(false);
+  const [giftSize, setGiftSize] = useState("");
+  const qty = cart.reduce((a, l) => a + l.qty, 0);
+  const gift = giftUnlocked(settings, qty, cartTotal);
+  const giftSizes = settings.giftSizes?.length ? settings.giftSizes : ["S", "M", "L", "XL", "XXL"];
+  const giftName = settings.giftName || "Happiness is Free Tee";
   const promo = usePromo(cartTotal);
   const payable = promo.total;
   const subtotalNgn = Math.round(cartTotal * settings.usdToNgn);
@@ -78,6 +83,10 @@ export function CheckoutDialog({
       toast.error("Please add your name, WhatsApp number and delivery address");
       return;
     }
+    if (gift && !giftSize) {
+      toast.error(`Pick a size for your free ${giftName}`);
+      return;
+    }
     setSeconds((settings.preorderMinutes || 30) * 60);
     setStep("transfer");
   };
@@ -112,6 +121,7 @@ export function CheckoutDialog({
           receipt_url: url,
           is_preorder: false,
           promo_code: promo.applied,
+          gift_size: gift ? giftSize : "",
         },
       });
       setReference(res.reference);
@@ -166,6 +176,42 @@ export function CheckoutDialog({
               </div>
             </div>
             <PromoCodeField promo={promo} />
+            {settings.giftEnabled && (
+              gift ? (
+                <div className="space-y-2 border border-accent/60 bg-accent/10 p-3">
+                  <div className="flex items-center gap-3">
+                    {settings.giftImage && <img src={settings.giftImage} alt="" className="h-14 w-11 object-cover" />}
+                    <div className="flex-1">
+                      <p className="font-accent text-[10px] text-accent">Reward unlocked</p>
+                      <p className="text-sm font-medium">{giftName}</p>
+                    </div>
+                    <p className="font-accent text-[11px]">
+                      {settings.giftValueNgn ? (
+                        <span className="mr-2 text-muted-foreground line-through">₦{settings.giftValueNgn.toLocaleString()}</span>
+                      ) : null}
+                      FREE
+                    </p>
+                  </div>
+                  <p className="font-accent text-[10px] text-muted-foreground">Pick your size</p>
+                  <div className="flex flex-wrap gap-2">
+                    {giftSizes.map((z) => (
+                      <button
+                        key={z}
+                        type="button"
+                        onClick={() => setGiftSize(z)}
+                        className={`h-9 min-w-10 border px-3 font-accent text-[10px] ${giftSize === z ? "border-foreground bg-foreground text-background" : ""}`}
+                      >
+                        {z}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="border border-dashed p-3 font-accent text-[10px] text-muted-foreground">
+                  {settings.giftHeadline || `Order ${settings.giftMinQty ?? 3}+ pieces to unlock a free ${giftName}.`}
+                </p>
+              )
+            )}
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <Label className="font-accent text-[10px]">Full name</Label>

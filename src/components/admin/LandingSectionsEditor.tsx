@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { CirclesEditor } from "./CirclesGiftEditors";
 import {
   DEFAULT_BANNERS,
   DEFAULT_PILLARS,
@@ -64,6 +65,7 @@ export function LandingSectionsEditor({ settings, set, upload, products }: Props
 
       <div className="space-y-3 border bg-card p-5">
         <Toggle label="Show category circles" checked={settings.showCategories ?? true} on={(v) => set("showCategories", v)} />
+        <CirclesEditor settings={settings} set={set} upload={upload} products={products} />
       </div>
 
       <div className="space-y-3 border bg-card p-5">
