@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { GiftEditor } from "@/components/admin/CirclesGiftEditors";
 import { LandingSectionsEditor } from "@/components/admin/LandingSectionsEditor";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -1391,6 +1392,7 @@ function AdminPage() {
                   Shoppers with an unexpired reward see their code instead of the wheel.
                 </span>
               </label>
+              <GiftEditor settings={settings} set={set} upload={upload} products={products} />
               {(() => {
                 const segs = promoSegmentsOf(settings);
                 const total = segs.reduce((a, g) => a + Math.max(0, Number(g.weight) || 0), 0);

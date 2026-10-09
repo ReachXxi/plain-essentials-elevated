@@ -64,16 +64,21 @@ function Index() {
         {settings.showCategories !== false && (
         <section className="mx-auto max-w-7xl px-4 pt-16 md:px-8">
           <div className="flex gap-6 overflow-x-auto pb-2 md:justify-center md:gap-10">
-            {categories.map((c) => {
+            {(settings.circles?.length
+              ? settings.circles.filter((x) => !x.hidden)
+              : categories.map((c) => ({ label: c, image: "", category: c, link: "" }))
+            ).map(({ label, image, category, link }, i) => {
+              const c = label;
               const img =
-                c === "All"
+                image ||
+                (category === "All" || !category
                   ? products[0]?.images[0]
-                  : products.find((p) => p.category === c)?.images[0];
+                  : products.find((p) => p.category === category)?.images[0]);
               return (
                 <a
-                  key={c}
-                  href="#shop"
-                  onClick={() => setTab(c)}
+                  key={label + i}
+                  href={link || "#shop"}
+                  onClick={() => !link && category && setTab(category)}
                   className="group flex shrink-0 flex-col items-center gap-3"
                 >
                   <span className="block h-24 w-24 overflow-hidden rounded-full border-2 border-transparent bg-secondary transition-all duration-300 group-hover:border-accent md:h-28 md:w-28">

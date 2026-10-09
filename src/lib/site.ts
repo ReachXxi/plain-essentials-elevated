@@ -101,10 +101,35 @@ export type SiteSettings = {
   shopTitle?: string;
   pillars?: Pillar[];
   showPillars?: boolean;
+  circles?: Circle[];
+  giftEnabled?: boolean;
+  giftMode?: GiftMode;
+  giftMinQty?: number;
+  giftMinNgn?: number;
+  giftName?: string;
+  giftImage?: string;
+  giftValueNgn?: number;
+  giftSizes?: string[];
+  giftHeadline?: string;
 };
+
+/** Homepage category circle. `category` filters the shop ("All" = everything); `link` overrides. */
+export type Circle = { label: string; image: string; category: string; link: string; hidden?: boolean };
+
+export type GiftMode = "qty" | "value" | "both" | "either";
+
+/** Free-gift (gift with purchase) rule check, shared by checkout and server. */
+export function giftUnlocked(s: Partial<SiteSettings>, qty: number, subtotalUsd: number) {
+  if (!s.giftEnabled) return false;
+  const q = qty >= (s.giftMinQty ?? 3);
+  const v = subtotalUsd * (s.usdToNgn || 1600) >= (s.giftMinNgn ?? 100000);
+  const m = s.giftMode ?? "qty";
+  return m === "qty" ? q : m === "value" ? v : m === "both" ? q && v : q || v;
+}
 
 export type Banner = { image: string; kicker: string; title: string; cta: string; link: string; hidden?: boolean };
 export type Pillar = { n: string; t: string; d: string };
+
 
 export const DEFAULT_BANNERS: Banner[] = [
   { image: "", kicker: "New in", title: "Everyday essentials", cta: "Shop now", link: "#shop" },
